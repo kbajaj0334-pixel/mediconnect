@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Home | Mediconnect{% endblock %}
+
+{% block content %}
+<div class="glass-card auth-card" style="max-width: 800px;">
+    <h1>Mediconnect</h1>
+    <p class="subtitle">Your health, our priority</p>
+    
+    <div style="text-align: center; margin-top: 2rem;">
+        {% if user.is_authenticated %}
+            <p>Welcome, <strong>{{ user.username }}</strong>! You are logged in as a <strong>{{ user.role }}</strong>.</p>
+            <div style="margin-top: 2rem;">
+                <a href="{% url 'logout' %}" class="btn btn-primary" style="display: inline-flex; width: auto; padding: 0.75rem 2rem;">Logout</a>
+            </div>
+        {% else %}
+            <p>Welcome to Mediconnect. Please login or register to continue.</p>
+            <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center;">
+                <a href="{% url 'login' %}" class="btn btn-primary" style="display: inline-flex; width: auto; padding: 0.75rem 2rem;">Login</a>
+                <a href="{% url 'register' %}" class="btn btn-primary" style="display: inline-flex; width: auto; padding: 0.75rem 2rem; background: var(--input-bg);">Register</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

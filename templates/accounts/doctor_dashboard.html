@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}Doctor Dashboard | Mediconnect{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-container {
+        width: 100%;
+        max-width: 1200px;
+        padding: 4rem 2rem;
+        margin: 0 auto;
+    }
+    .welcome-card {
+        padding: 4rem;
+        margin-bottom: 3rem;
+        text-align: left;
+    }
+    .welcome-card h1 {
+        text-align: left;
+        margin-bottom: 1rem;
+    }
+    .welcome-card .subtitle {
+        text-align: left;
+        margin-bottom: 0;
+        font-size: 1.1rem;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+    .stat-item {
+        padding: 2.5rem;
+        text-align: center;
+    }
+    .stat-label {
+        color: var(--text-muted);
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 1rem;
+    }
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: white;
+    }
+    
+    .action-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 2rem;
+    }
+    .action-item {
+        padding: 3rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    .action-item h2 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: white;
+    }
+    .action-item p {
+        color: var(--text-muted);
+        line-height: 1.7;
+    }
+    .btn-action {
+        margin-top: auto;
+    }
+
+    @media (max-width: 768px) {
+        .action-grid {
+            grid-template-columns: 1fr;
+        }
+        .welcome-card {
+            padding: 2.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="glass-card welcome-card">
+        <h1>Dr. {{ doctor.user.get_full_name|default:doctor.user.username }}</h1>
+        <p class="subtitle">Healthcare Professional Dashboard | {{ doctor.specialization }}</p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="glass-card stat-item">
+            <div class="stat-label">Experience</div>
+            <div class="stat-value">{{ doctor.experience_years }} Yrs</div>
+        </div>
+        <div class="glass-card stat-item">
+            <div class="stat-label">Online Fee</div>
+            <div class="stat-value">₹{{ doctor.fees_online }}</div>
+        </div>
+        <div class="glass-card stat-item">
+            <div class="stat-label">Hospital</div>
+            <div class="stat-value" style="font-size: 1.25rem;">{{ doctor.hospital.name }}</div>
+        </div>
+    </div>
+
+    <div class="action-grid">
+        <div class="glass-card action-item">
+            <div>
+                <h2>Manage Availability</h2>
+                <p>Configure your weekly consultation hours and appointment slot durations. Maintaining an up-to-date schedule ensures seamless patient bookings.</p>
+            </div>
+            <a href="{% url 'manage_availability' %}" class="btn btn-primary btn-action">
+                Configure Schedule
+            </a>
+        </div>
+        
+        <div class="glass-card action-item">
+            <div>
+                <h2>Consultation History</h2>
+                <p>Review your previous interactions, patient records, and upcoming appointments. Stay informed about your clinical history.</p>
+            </div>
+            <a href="#" class="btn btn-primary btn-action" style="background: var(--input-bg); border: 1px solid var(--glass-border);">
+                View Appointments
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
