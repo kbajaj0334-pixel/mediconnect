@@ -1,80 +1,19 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Bootstrap demo</title>
-        <link
-            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
-            rel="stylesheet"
-            integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
-            crossorigin="anonymous">
-    </head>
-    <body>
-        <div class="container m-4" style="margin-top:150px !important;">
-            <h2 class="pb-3">Login Now</h2>
-            <form method="post">
-                {% csrf_token %}
-                <div class="form-floating mb-3">
-                    <input type="email" class="form-control" name="email"
-                        placeholder="name@example.com">
-                    <label for="floatingInput">Email address</label>
-                </div>
-                <div class="form-floating">
-                    <input type="password" class="form-control"
-                       name="password" placeholder="Password">
-                    <label for="floatingPassword">Password</label>
-                </div>
-              <button type="button" class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#exampleModal" data-bs-whatever="@mdo">Reset Password</button>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>login</title>
+</head>
+<body>
+  <form method="POST">
+    {% csrf_token %}
 
-                <button type="submit" class="btn btn-primary mt-3">Submit</button>
-            </form>
-        </div>
+    <input type="email" name="email" placeholder="Enter Email">
 
-<div style="top:0 ; position:fixed; " class="container m-5">
-{% if messages %}
-{% for message in messages %}
-<div class="alert alert-primary alert-dismissible fade show" role="alert">
-  <strong>{{ message }}</strong>
-  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-</div>
-{% endfor %}
-{% endif %}
-</div>
+    <input type="password" name="password" placeholder="Enter Password">
 
-
-
-<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h1 class="modal-title fs-5" id="exampleModalLabel">Forgot Password</h1>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <form action="{% url 'reset_password' %}"  method="post">
-            {% csrf_token %}
-          <div class="mb-3">
-            <label for="recipient-name" class="col-form-label">Enter registered mail:</label>
-            <input type="email" class="form-control" name="email">
-          </div>
-         
-     
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="submit" class="btn btn-primary">Send new password</button>
-      </div>
-         </form>
-    </div>
-  </div>
-</div>
-
-
-
-        <script
-            src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-            crossorigin="anonymous"></script>
-    </body>
+    <button type="submit">Login</button>
+</form>
+</body>
 </html>
