@@ -99,41 +99,139 @@ def manage_availability(request):
     doctor = DoctorProfile.objects.get(user=request.user)
     
     if request.method == 'POST':
-        # Handle form submission for availability
-        weekday = request.POST.get('weekday')
-        start_time = request.POST.get('start_time')
-        end_time = request.POST.get('end_time')
-        slot_duration = request.POST.get('slot_duration', 15)
+        action = request.POST.get('action')
         
-        try:
-            availability, created = DoctorAvailability.objects.update_or_create(
-                doctor=doctor,
-                weekday=weekday,
-                defaults={
-                    'start_time': start_time,
-                    'end_time': end_time,
-                    'slot_duration': slot_duration,
-                    'is_active': True
-                }
-            )
-            messages.success(request, 'Availability updated successfully')
-        except Exception as e:
-            messages.error(request, f'Error: {str(e)}')
+        if action == 'delete':
+            slot_id = request.POST.get('slot_id')
+            try:
+                slot = DoctorAvailability.objects.get(id=slot_id, doctor=doctor)
+                slot.delete()
+                messages.success(request, 'Time slot deleted')
+            except DoctorAvailability.DoesNotExist:
+                messages.error(request, 'Slot not found')
+        else:
+            # Handle save/update
+            slot_id = request.POST.get('slot_id')
+            weekday = request.POST.get('weekday')
+            start_time = request.POST.get('start_time')
+            end_time = request.POST.get('end_time')
+            slot_duration = request.POST.get('slot_duration', 15)
+            
+            try:
+                if slot_id:
+                    # Update existing
+                    availability = DoctorAvailability.objects.get(id=slot_id, doctor=doctor)
+                    availability.weekday = weekday
+                    availability.start_time = start_time
+                    availability.end_time = end_time
+                    availability.slot_duration = slot_duration
+                    availability.save()
+                    messages.success(request, 'Availability updated successfully')
+                else:
+                    # Create new
+                    DoctorAvailability.objects.create(
+                        doctor=doctor,
+                        weekday=weekday,
+                        start_time=start_time,
+                        end_time=end_time,
+                        slot_duration=slot_duration
+                    )
+                    messages.success(request, 'Availability added successfully')
+            except Exception as e:
+                messages.error(request, f'Error: {str(e)}')
             
         return redirect('manage_availability')
 
-    availabilities = DoctorAvailability.objects.filter(doctor=doctor).order_by('weekday')
-    # Pre-fill a list of 7 days
+    availabilities = DoctorAvailability.objects.filter(doctor=doctor).order_by('weekday', 'start_time')
+    
+    # Group availabilities by weekday
+    avail_dict = {i: [] for i, _ in DoctorAvailability.WEEKDAYS}
+    for a in availabilities:
+        avail_dict[a.weekday].append(a)
+        
     days_data = []
-    avail_dict = {a.weekday: a for a in availabilities}
     for i, name in DoctorAvailability.WEEKDAYS:
         days_data.append({
             'id': i,
             'name': name,
-            'avail': avail_dict.get(i)
+            'slots': avail_dict.get(i, []),
+            'has_data': len(avail_dict.get(i, [])) > 0
         })
 
     return render(request, 'accounts/manage_availability.html', {
         'doctor': doctor,
         'days_data': days_data
     })
+
+@login_required
+def find_doctors(request):
+    specialization = request.GET.get('specialization')
+    if specialization:
+        doctors = DoctorProfile.objects.filter(specialization__icontains=specialization, is_available=True)
+    else:
+        doctors = DoctorProfile.objects.filter(is_available=True)
+    
+    return render(request, 'accounts/find_doctors.html', {'doctors': doctors})
+
+@login_required
+def update_profile_view(request):
+    user = request.user
+    hospitals = Hospital.objects.all()
+    profile = None
+    
+    if user.role == 'PATIENT':
+        try:
+            profile = PatientProfile.objects.get(user=user)
+        except PatientProfile.DoesNotExist:
+            # Handle case where profile wasn't created during registration
+            profile = PatientProfile.objects.create(user=user, date_of_birth='2000-01-01')
+            
+        if request.method == 'POST':
+            profile.date_of_birth = request.POST.get('date_of_birth')
+            profile.gender = request.POST.get('gender')
+            profile.blood_group = request.POST.get('blood_group')
+            profile.medical_history = request.POST.get('medical_history')
+            profile.allergies = request.POST.get('allergies')
+            
+            if 'patient_pic' in request.FILES:
+                profile.patient_pic = request.FILES['patient_pic']
+            
+            profile.save()
+            messages.success(request, 'Profile updated successfully!')
+            return redirect('home')
+            
+    elif user.role == 'DOCTOR':
+        try:
+            profile = DoctorProfile.objects.get(user=user)
+        except DoctorProfile.DoesNotExist:
+            messages.error(request, 'Doctor profile not found.')
+            return redirect('doctor_dashboard')
+
+        if request.method == 'POST':
+            hospital_id = request.POST.get('hospital')
+            if hospital_id:
+                try:
+                    profile.hospital = Hospital.objects.get(id=hospital_id)
+                except Hospital.DoesNotExist:
+                    pass
+            
+            profile.specialization = request.POST.get('specialization')
+            profile.experience_years = int(request.POST.get('experience_years', 0) or 0)
+            profile.fees_online = int(request.POST.get('fees_online', 0) or 0)
+            profile.fees_offline = int(request.POST.get('fees_offline', 0) or 0)
+            profile.bio = request.POST.get('bio')
+            profile.is_available = 'is_available' in request.POST
+            
+            if 'doctor_pic' in request.FILES:
+                profile.doctor_pic = request.FILES['doctor_pic']
+            
+            profile.save()
+            messages.success(request, 'Profile updated successfully!')
+            return redirect('doctor_dashboard')
+    
+    context = {
+        'profile': profile,
+        'hospitals': hospitals,
+        'role': user.role
+    }
+    return render(request, 'accounts/updateprofile.html', context)

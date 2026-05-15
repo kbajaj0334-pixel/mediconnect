@@ -26,6 +26,12 @@ body {
     flex-direction: column;
 }
 
+.auth-body {
+ 
+    justify-content: center !important;
+    align-items: center !important;
+}
+
 .glass-card {
     background: var(--card-bg);
     backdrop-filter: blur(12px);

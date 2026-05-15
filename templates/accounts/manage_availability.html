@@ -49,6 +49,8 @@
         padding: 2.5rem;
         position: relative;
         overflow: hidden;
+        display: flex;
+        flex-direction: column;
     }
     
     .day-card::before {
@@ -71,7 +73,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
     }
     .day-title h2 {
         font-size: 1.5rem;
@@ -89,6 +91,87 @@
         box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
     }
 
+    /* Slots List Styles */
+    .slots-list {
+        margin-bottom: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    .slot-item {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 0.75rem 1rem;
+        border-radius: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 1px solid var(--glass-border);
+        transition: all 0.2s;
+    }
+    .slot-item:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: var(--primary);
+    }
+    .slot-info {
+        display: flex;
+        flex-direction: column;
+    }
+    .slot-time {
+        font-weight: 600;
+        color: white;
+        font-size: 0.95rem;
+    }
+    .slot-duration {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+    .slot-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    .action-btn {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        padding: 0.4rem;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+    .action-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+    .action-btn.delete:hover {
+        color: #ef4444;
+    }
+
+    .form-divider {
+        height: 1px;
+        background: var(--glass-border);
+        margin: 1.5rem 0;
+    }
+
+    .form-header {
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--primary);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .cancel-edit {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        cursor: pointer;
+        text-decoration: underline;
+        display: none;
+    }
+
     .time-inputs {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -97,9 +180,10 @@
     }
 
     .save-btn {
-        margin-top: 1rem;
+        margin-top: 0.5rem;
         font-size: 0.9rem;
         padding: 0.75rem;
+        width: 100%;
     }
 
     @media (max-width: 768px) {
@@ -134,38 +218,122 @@
 
     <div class="calendar-grid">
         {% for day in days_data %}
-        <div class="glass-card day-card {% if day.avail %}has-data{% endif %}">
+        <div class="glass-card day-card {% if day.has_data %}has-data{% endif %}" id="day-card-{{ day.id }}">
             <div class="day-title">
                 <h2>{{ day.name }}</h2>
-                <div class="status-dot {% if day.avail %}active{% endif %}" title="{% if day.avail %}Active{% else %}Inactive{% endif %}"></div>
+                <div class="status-dot {% if day.has_data %}active{% endif %}" title="{% if day.has_data %}Active{% else %}Inactive{% endif %}"></div>
             </div>
             
-            <form method="POST">
+            <div class="slots-list">
+                {% if day.slots %}
+                    {% for slot in day.slots %}
+                    <div class="slot-item" id="slot-{{ slot.id }}">
+                        <div class="slot-info">
+                            <span class="slot-time">{{ slot.start_time|time:"H:i" }} - {{ slot.end_time|time:"H:i" }}</span>
+                            <span class="slot-duration">{{ slot.slot_duration }} min slots</span>
+                        </div>
+                        <div class="slot-actions">
+                            <button type="button" class="action-btn" onclick="editSlot('{{ day.id }}', '{{ slot.id }}', '{{ slot.start_time|time:'H:i' }}', '{{ slot.end_time|time:'H:i' }}', '{{ slot.slot_duration }}')" title="Edit Slot">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            </button>
+                            <form method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this slot?')">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="slot_id" value="{{ slot.id }}">
+                                <button type="submit" class="action-btn delete" title="Delete Slot">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="color: var(--text-muted); font-size: 0.9rem; font-style: italic;">No slots scheduled.</p>
+                {% endif %}
+            </div>
+
+            <div class="form-divider"></div>
+
+            <form method="POST" id="form-{{ day.id }}">
                 {% csrf_token %}
                 <input type="hidden" name="weekday" value="{{ day.id }}">
+                <input type="hidden" name="slot_id" id="slot-id-{{ day.id }}" value="">
                 
+                <div class="form-header">
+                    <span id="form-title-{{ day.id }}">Add New Slot</span>
+                    <span class="cancel-edit" id="cancel-{{ day.id }}" onclick="resetForm('{{ day.id }}')">Cancel</span>
+                </div>
+
                 <div class="time-inputs">
                     <div class="form-group">
                         <label>Start Time</label>
-                        <input type="time" name="start_time" value="{{ day.avail.start_time|time:'H:i'|default:'09:00' }}" required>
+                        <input type="time" name="start_time" id="start-time-{{ day.id }}" value="09:00" required>
                     </div>
                     <div class="form-group">
                         <label>End Time</label>
-                        <input type="time" name="end_time" value="{{ day.avail.end_time|time:'H:i'|default:'17:00' }}" required>
+                        <input type="time" name="end_time" id="end-time-{{ day.id }}" value="17:00" required>
                     </div>
                 </div>
                 
                 <div class="form-group">
                     <label>Slot Duration (min)</label>
-                    <input type="number" name="slot_duration" value="{{ day.avail.slot_duration|default:15 }}" min="5" max="120" required>
+                    <input type="number" name="slot_duration" id="duration-{{ day.id }}" value="15" min="5" max="120" required>
                 </div>
                 
-                <button type="submit" class="btn btn-primary save-btn">
-                    {% if day.avail %}Update Schedule{% else %}Set Hours{% endif %}
+                <button type="submit" class="btn btn-primary save-btn" id="submit-btn-{{ day.id }}">
+                    Add Slot
                 </button>
             </form>
         </div>
         {% endfor %}
     </div>
 </div>
+
+<script>
+    function editSlot(dayId, slotId, startTime, endTime, duration) {
+        const form = document.getElementById('form-' + dayId);
+        const slotIdInput = document.getElementById('slot-id-' + dayId);
+        const startTimeInput = document.getElementById('start-time-' + dayId);
+        const endTimeInput = document.getElementById('end-time-' + dayId);
+        const durationInput = document.getElementById('duration-' + dayId);
+        const submitBtn = document.getElementById('submit-btn-' + dayId);
+        const formTitle = document.getElementById('form-title-' + dayId);
+        const cancelBtn = document.getElementById('cancel-' + dayId);
+
+        slotIdInput.value = slotId;
+        startTimeInput.value = startTime;
+        endTimeInput.value = endTime;
+        durationInput.value = duration;
+        submitBtn.innerText = 'Update Slot';
+        formTitle.innerText = 'Edit Slot';
+        cancelBtn.style.display = 'inline';
+        
+        // Scroll to form
+        form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        
+        // Highlight the card
+        document.querySelectorAll('.day-card').forEach(c => c.style.borderColor = 'transparent');
+        document.getElementById('day-card-' + dayId).style.borderColor = 'var(--primary)';
+    }
+
+    function resetForm(dayId) {
+        const slotIdInput = document.getElementById('slot-id-' + dayId);
+        const startTimeInput = document.getElementById('start-time-' + dayId);
+        const endTimeInput = document.getElementById('end-time-' + dayId);
+        const durationInput = document.getElementById('duration-' + dayId);
+        const submitBtn = document.getElementById('submit-btn-' + dayId);
+        const formTitle = document.getElementById('form-title-' + dayId);
+        const cancelBtn = document.getElementById('cancel-' + dayId);
+
+        slotIdInput.value = '';
+        startTimeInput.value = '09:00';
+        endTimeInput.value = '17:00';
+        durationInput.value = '15';
+        submitBtn.innerText = 'Add Slot';
+        formTitle.innerText = 'Add New Slot';
+        cancelBtn.style.display = 'none';
+        
+        document.getElementById('day-card-' + dayId).style.borderColor = 'transparent';
+    }
+</script>
 {% endblock %}

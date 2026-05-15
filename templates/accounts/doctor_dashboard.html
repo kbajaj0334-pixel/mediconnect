@@ -85,9 +85,14 @@
 
 {% block content %}
 <div class="dashboard-container">
-    <div class="glass-card welcome-card">
-        <h1>Dr. {{ doctor.user.get_full_name|default:doctor.user.username }}</h1>
-        <p class="subtitle">Healthcare Professional Dashboard | {{ doctor.specialization }}</p>
+    <div class="glass-card welcome-card" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1>Dr. {{ doctor.user.get_full_name|default:doctor.user.username }}</h1>
+            <p class="subtitle">Healthcare Professional Dashboard | {{ doctor.specialization }}</p>
+        </div>
+        <a href="{% url 'update_profile' %}" class="btn btn-primary" style="width: auto; padding: 0.75rem 1.5rem; background: rgba(129, 140, 248, 0.1); border: 1px solid #818cf8; color: #818cf8;">
+            Update Profile
+        </a>
     </div>
 
     <div class="stats-grid">

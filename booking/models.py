@@ -2,8 +2,7 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from datetime import date
- 
- 
+from accounts.models import DoctorAvailability
 
 class Appointment(models.Model):
 
@@ -73,6 +72,21 @@ class Appointment(models.Model):
         if overlapping.exists():
             raise ValidationError(
                 "This slot is already booked."
+            )
+        
+        weekday = self.appointment_date.weekday()
+
+        available = DoctorAvailability.objects.filter(
+            doctor=self.doctor,
+            weekday=weekday,
+            start_time__lte=self.start_time,
+            end_time__gte=self.end_time,
+            is_active=True
+        ).exists()
+
+        if not available:
+            raise ValidationError(
+                "Doctor is not available at this time."
             )
 
     def save(self, *args, **kwargs):

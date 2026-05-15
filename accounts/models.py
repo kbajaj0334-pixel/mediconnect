@@ -18,7 +18,7 @@ class PatientProfile(models.Model):
     date_of_birth = models.DateField()
     gender = models.CharField(max_length=20, blank=True)
     blood_group = models.CharField(max_length=10, blank=True)
-
+    patient_pic = models.ImageField(upload_to='profiles/patients', blank=True, null=True)
     medical_history = models.TextField(blank=True)
     allergies = models.TextField(blank=True)
 
@@ -31,7 +31,7 @@ class DoctorProfile(models.Model):
 
     specialization = models.CharField(max_length=100)
     experience_years = models.IntegerField(default=0)
-
+    doctor_pic = models.ImageField(upload_to='profiles/doctors', blank=True, null=True)
     fees_online = models.IntegerField(default=0)
     fees_offline = models.IntegerField(default=0)
     
@@ -69,13 +69,44 @@ class DoctorAvailability(models.Model):
     )
 
     is_active = models.BooleanField(default=True)
+
     class Meta:
-        unique_together = ('doctor', 'weekday')
- 
+
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(
+                    end_time__gt=models.F('start_time')
+                ),
+                name='availability_end_after_start'
+            )
+        ]
+
+    def clean(self):
+
+        super().clean()
+
+        overlapping = DoctorAvailability.objects.filter(
+            doctor=self.doctor,
+            weekday=self.weekday,
+            start_time__lt=self.end_time,
+            end_time__gt=self.start_time,
+            is_active=True
+        )
+
+        if self.pk:
+            overlapping = overlapping.exclude(pk=self.pk)
+
+        if overlapping.exists():
+            raise ValidationError(
+                "Availability overlaps with another schedule."
+            )
+
     def save(self, *args, **kwargs):
-        if self.start_time >= self.end_time:
-            raise ValidationError("End time must be greater than start time")
+
+        self.full_clean()
+
         super().save(*args, **kwargs)
-        
+
     def __str__(self):
+
         return f"{self.doctor} - {self.get_weekday_display()}"

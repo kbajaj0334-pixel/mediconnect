@@ -1,8 +1,22 @@
-{% extends 'base.html' %}
 
-{% block title %}Register | Mediconnect{% endblock %}
+    {% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Mediconnect{% endblock %}</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
 
-{% block content %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+ 
+ </head>
+<body class="auth-body">
+ 
 <div class="glass-card auth-card">
     <h1>Join Us</h1>
     <p class="subtitle">Select your role and create your account</p>
@@ -98,9 +112,8 @@
         Already have an account? <a href="{% url 'login' %}">Login</a>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
+ 
+ 
 <script>
 function setRole(role) {
     document.getElementById('selected-role').value = role;
@@ -138,4 +151,8 @@ function setRole(role) {
 // Set initial required fields
 setRole('PATIENT');
 </script>
-{% endblock %}
+</body>
+</html>
+
+
+

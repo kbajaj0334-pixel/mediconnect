@@ -12,11 +12,191 @@
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     {% block extra_css %}{% endblock %}
+    <style>
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1rem 0;
+        }
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            text-decoration: none;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+            font-size: 0.95rem;
+        }
+        .nav-links a:hover {
+            color: white;
+        }
+        .nav-auth {
+            display: flex;
+            gap: 1rem;
+        }
+        .btn-nav {
+            padding: 0.5rem 1.25rem;
+            font-size: 0.9rem;
+            width: auto;
+        }
+        
+        footer {
+            background: rgba(0, 0, 0, 0.3);
+            border-top: 1px solid var(--glass-border);
+            padding: 4rem 0 2rem;
+            margin-top: auto;
+        }
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 4rem;
+        }
+        .footer-logo h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            text-align: left;
+        }
+        .footer-section h3 {
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            color: white;
+        }
+        .footer-section ul {
+            list-style: none;
+        }
+        .footer-section ul li {
+            margin-bottom: 0.75rem;
+        }
+        .footer-section ul li a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .footer-section ul li a:hover {
+            color: var(--primary);
+        }
+        .footer-bottom {
+            max-width: 1200px;
+            margin: 2rem auto 0;
+            padding: 2rem 2rem 0;
+            border-top: 1px solid var(--glass-border);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="auth-wrapper">
-        {% block content %}{% endblock %}
+    <nav>
+        <div class="nav-container">
+            <a href="{% url 'home' %}" class="logo">Mediconnect</a>
+            <div class="nav-links">
+                <a href="{% url 'home' %}">Home</a>
+                {% if user.is_authenticated %}
+                    {% if user.role == 'DOCTOR' %}
+                        <a href="{% url 'doctor_dashboard' %}">Dashboard</a>
+                        <a href="{% url 'manage_availability' %}">Availability</a>
+                    {% else %}
+                        <a href="{% url 'find_doctors' %}">Find Doctors</a>
+                        <a href="{% url 'medical_records' %}">My Records</a>
+                    {% endif %}
+                    <a href="{% url 'update_profile' %}">Profile</a>
+                {% endif %}
+            </div>
+            <div class="nav-auth">
+                {% if user.is_authenticated %}
+                    <span style="color: var(--text-muted); margin-right: 1rem; align-self: center;">Hi, {{ user.username }}</span>
+                    <a href="{% url 'logout' %}" class="btn btn-primary btn-nav" style="background: var(--input-bg);">Logout</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-primary btn-nav" style="background: var(--input-bg); border: 1px solid var(--glass-border);">Login</a>
+                    <a href="{% url 'register' %}" class="btn btn-primary btn-nav">Register</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    {% if messages %}
+    <div class="container" style="padding-bottom: 0;">
+        <div class="messages">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
     </div>
+    {% endif %}
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">
+                <h2 class="logo">Mediconnect</h2>
+                <p style="color: var(--text-muted); line-height: 1.6;">Connecting patients with the best healthcare professionals and hospitals. Your health is our priority, anytime, anywhere.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li><a href="{% url 'find_doctors' %}">Find Doctors</a></li>
+                    <li><a href="{% url 'hospital_list' %}">Hospitals</a></li>
+                    <li><a href="#">About Us</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Support</h3>
+                <ul>
+                    <li><a href="#">Contact Us</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            &copy; 2026 Mediconnect. All rights reserved.
+        </div>
+    </footer>
+
     {% block extra_js %}{% endblock %}
 </body>
 </html>

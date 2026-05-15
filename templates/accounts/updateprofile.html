@@ -1,0 +1,266 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Update Profile | Mediconnect{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-container {
+        max-width: 800px;
+        margin: 4rem auto;
+        padding: 0 2rem;
+    }
+
+    .glass-card {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        padding: 3rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .profile-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .profile-header h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(to right, #818cf8, #c084fc);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .profile-header p {
+        color: var(--text-muted);
+        font-size: 1.1rem;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+
+    .form-group {
+        margin-bottom: 2rem;
+    }
+
+    .form-group.full-width {
+        grid-column: span 2;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.75rem;
+        color: white;
+        font-weight: 500;
+        font-size: 0.95rem;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.875rem 1.25rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        color: white;
+        font-family: 'Inter', sans-serif;
+        font-size: 1rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #818cf8;
+        background: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.1);
+    }
+
+    .form-input::placeholder {
+        color: rgba(255, 255, 255, 0.3);
+    }
+
+    textarea.form-input {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .pic-preview {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 1rem;
+        border: 3px solid #818cf8;
+        padding: 3px;
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 1rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin-top: 1rem;
+        background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
+    }
+
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+
+    .checkbox-group input {
+        width: 20px;
+        height: 20px;
+        accent-color: #818cf8;
+    }
+
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+        .form-group.full-width {
+            grid-column: span 1;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="glass-card">
+        <div class="profile-header">
+            <h1>Manage Profile</h1>
+            <p>Keep your professional information up to date</p>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="form-grid">
+                {% if role == 'PATIENT' %}
+                    <!-- Patient Fields -->
+                    <div class="form-group full-width" style="text-align: center;">
+                        <label>Profile Picture</label>
+                        {% if profile.patient_pic %}
+                            <img src="{{ profile.patient_pic.url }}" class="pic-preview" alt="Profile Pic">
+                        {% else %}
+                            <div class="pic-preview" style="display: inline-flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1);">
+                                <span style="font-size: 2rem;">👤</span>
+                            </div>
+                        {% endif %}
+                        <input type="file" name="patient_pic" class="form-input">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Date of Birth</label>
+                        <input type="date" name="date_of_birth" class="form-input" value="{{ profile.date_of_birth|date:'Y-m-d' }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <select name="gender" class="form-input">
+                            <option value="">Select Gender</option>
+                            <option value="Male" {% if profile.gender == 'Male' %}selected{% endif %}>Male</option>
+                            <option value="Female" {% if profile.gender == 'Female' %}selected{% endif %}>Female</option>
+                            <option value="Other" {% if profile.gender == 'Other' %}selected{% endif %}>Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Blood Group</label>
+                        <input type="text" name="blood_group" class="form-input" placeholder="e.g. A+" value="{{ profile.blood_group }}">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>Medical History</label>
+                        <textarea name="medical_history" class="form-input" placeholder="List any past surgeries, chronic conditions, etc.">{{ profile.medical_history }}</textarea>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>Allergies</label>
+                        <textarea name="allergies" class="form-input" placeholder="List any known allergies...">{{ profile.allergies }}</textarea>
+                    </div>
+
+                {% elif role == 'DOCTOR' %}
+                    <!-- Doctor Fields -->
+                    <div class="form-group full-width" style="text-align: center;">
+                        <label>Profile Picture</label>
+                        {% if profile.doctor_pic %}
+                            <img src="{{ profile.doctor_pic.url }}" class="pic-preview" alt="Profile Pic">
+                        {% else %}
+                            <div class="pic-preview" style="display: inline-flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1);">
+                                <span style="font-size: 2rem;">👨‍⚕️</span>
+                            </div>
+                        {% endif %}
+                        <input type="file" name="doctor_pic" class="form-input">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Hospital</label>
+                        <select name="hospital" class="form-input" required>
+                            {% for hospital in hospitals %}
+                                <option value="{{ hospital.id }}" {% if profile.hospital.id == hospital.id %}selected{% endif %}>
+                                    {{ hospital.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Specialization</label>
+                        <input type="text" name="specialization" class="form-input" value="{{ profile.specialization }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Years of Experience</label>
+                        <input type="number" name="experience_years" class="form-input" value="{{ profile.experience_years }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Online Fee (₹)</label>
+                        <input type="number" name="fees_online" class="form-input" value="{{ profile.fees_online }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Offline Fee (₹)</label>
+                        <input type="number" name="fees_offline" class="form-input" value="{{ profile.fees_offline }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" name="is_available" id="is_available" {% if profile.is_available %}checked{% endif %}>
+                            <label for="is_available" style="margin-bottom: 0;">Available for Appointments</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>Professional Bio</label>
+                        <textarea name="bio" class="form-input" placeholder="Tell us about your background and expertise...">{{ profile.bio }}</textarea>
+                    </div>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn-submit">Save Changes</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

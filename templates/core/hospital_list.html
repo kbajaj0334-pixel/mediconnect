@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Hospitals | Mediconnect{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hospitals-container {
+        padding: 4rem 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    .hospital-card {
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        display: flex;
+        gap: 2rem;
+        align-items: center;
+    }
+    .hosp-icon {
+        font-size: 4rem;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 2rem;
+        border-radius: 20px;
+    }
+    .hosp-details h3 {
+        font-size: 1.75rem;
+        margin-bottom: 0.5rem;
+    }
+    .hosp-meta {
+        display: flex;
+        gap: 1.5rem;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hospitals-container">
+    <div class="section-header">
+        <div class="section-title">
+            <h2>Our Partner Hospitals</h2>
+            <p>Providing state-of-the-art facilities and compassionate care.</p>
+        </div>
+    </div>
+
+    {% for hospital in hospitals %}
+    <div class="glass-card hospital-card">
+        <div class="hosp-icon">🏥</div>
+        <div class="hosp-details" style="flex: 1;">
+            <h3>{{ hospital.name }}</h3>
+            <div class="hosp-meta">
+                <span>📍 {{ hospital.address }}, {{ hospital.state }}</span>
+                <span>📞 {{ hospital.phone }}</span>
+            </div>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Leading healthcare provider committed to clinical excellence and patient safety.</p>
+            <div style="display: flex; gap: 1rem;">
+                <a href="#" class="btn btn-primary" style="width: auto; padding: 0.75rem 2rem;">Book Appointment</a>
+                <a href="#" class="btn btn-primary" style="width: auto; padding: 0.75rem 2rem; background: var(--input-bg);">View Department</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p style="text-align: center; color: var(--text-muted); padding: 4rem;">No hospitals registered yet.</p>
+    {% endfor %}
+</div>
+{% endblock %}

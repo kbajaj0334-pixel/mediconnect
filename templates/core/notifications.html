@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Notifications | Mediconnect{% endblock %}
+
+{% block extra_css %}
+<style>
+    .notifications-container {
+        padding: 4rem 2rem;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .notif-item {
+        padding: 1.5rem 2rem;
+        margin-bottom: 1rem;
+        display: flex;
+        gap: 1.5rem;
+        align-items: flex-start;
+        transition: all 0.2s;
+    }
+    .notif-item.unread {
+        border-left: 4px solid var(--primary);
+        background: rgba(255, 255, 255, 0.08);
+    }
+    .notif-icon {
+        font-size: 1.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 0.75rem;
+        border-radius: 12px;
+    }
+    .notif-time {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin-top: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="notifications-container">
+    <div class="section-header">
+        <div class="section-title">
+            <h2>Notifications</h2>
+            <p>Stay updated with your appointment status and health alerts.</p>
+        </div>
+    </div>
+
+    {% for notif in notifications %}
+    <div class="glass-card notif-item {% if not notif.is_read %}unread{% endif %}">
+        <div class="notif-icon">🔔</div>
+        <div style="flex: 1;">
+            <p style="color: white; line-height: 1.5;">{{ notif.message }}</p>
+            <div class="notif-time">{{ notif.created_at|timesince }} ago</div>
+        </div>
+        {% if not notif.is_read %}
+        <div style="width: 8px; height: 8px; background: var(--primary); border-radius: 50%; margin-top: 0.5rem;"></div>
+        {% endif %}
+    </div>
+    {% empty %}
+    <div class="glass-card" style="text-align: center; padding: 4rem;">
+        <p style="color: var(--text-muted);">You have no notifications.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

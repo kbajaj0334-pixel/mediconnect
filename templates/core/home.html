@@ -2,24 +2,309 @@
 
 {% block title %}Home | Mediconnect{% endblock %}
 
+{% block extra_css %}
+<style>
+    .hero-section {
+        height: 600px;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        background: url('C:/Users/Mantript Singh/.gemini/antigravity/brain/8eb360b2-1352-4c8e-8b4e-71936ff60864/mediconnect_hero_1778760480895.png') center/cover no-repeat;
+    }
+    .hero-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to right, rgba(15, 23, 42, 0.9) 30%, rgba(15, 23, 42, 0.4) 100%);
+    }
+    .hero-content {
+        position: relative;
+        z-index: 10;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+        width: 100%;
+    }
+    .hero-text h1 {
+        text-align: left;
+        font-size: 4rem;
+        margin-bottom: 1.5rem;
+        line-height: 1.1;
+    }
+    .hero-text p {
+        font-size: 1.25rem;
+        color: var(--text-muted);
+        max-width: 600px;
+        margin-bottom: 3rem;
+        line-height: 1.6;
+    }
+    .hero-btns {
+        display: flex;
+        gap: 1.5rem;
+    }
+    .hero-btn {
+        width: auto;
+        padding: 1rem 2.5rem;
+    }
+
+    .section-container {
+        max-width: 1200px;
+        margin: 6rem auto;
+        padding: 0 2rem;
+    }
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 3rem;
+    }
+    .section-title h2 {
+        font-size: 2.25rem;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 0.5rem;
+    }
+    .section-title p {
+        color: var(--text-muted);
+    }
+    .view-all {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    /* Dashboard Cards */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2rem;
+        margin-bottom: 4rem;
+    }
+    .appointment-card {
+        padding: 2rem;
+        display: flex;
+        gap: 1.5rem;
+        align-items: center;
+    }
+    .date-badge {
+        background: rgba(99, 102, 241, 0.1);
+        border: 1px solid var(--primary);
+        padding: 1rem;
+        border-radius: 16px;
+        text-align: center;
+        min-width: 80px;
+    }
+    .date-badge .day {
+        display: block;
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--primary);
+    }
+    .date-badge .month {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        font-weight: 600;
+    }
+
+    /* Entity Cards */
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 2rem;
+    }
+    .entity-card {
+        padding: 1.5rem;
+        transition: transform 0.3s;
+    }
+    .entity-card:hover {
+        transform: translateY(-8px);
+    }
+    .entity-img {
+        width: 100%;
+        height: 200px;
+        background: var(--input-bg);
+        border-radius: 16px;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
+        font-size: 3rem;
+    }
+    .entity-info h3 {
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+        color: white;
+    }
+    .entity-info p {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+    }
+    .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .tag {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        border: 1px solid var(--glass-border);
+    }
+
+    @media (max-width: 768px) {
+        .hero-text h1 { font-size: 3rem; }
+        .hero-btns { flex-direction: column; }
+        .hero-section { height: auto; padding: 8rem 0 4rem; }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="glass-card auth-card" style="max-width: 800px;">
-    <h1>Mediconnect</h1>
-    <p class="subtitle">Your health, our priority</p>
-    
-    <div style="text-align: center; margin-top: 2rem;">
-        {% if user.is_authenticated %}
-            <p>Welcome, <strong>{{ user.username }}</strong>! You are logged in as a <strong>{{ user.role }}</strong>.</p>
-            <div style="margin-top: 2rem;">
-                <a href="{% url 'logout' %}" class="btn btn-primary" style="display: inline-flex; width: auto; padding: 0.75rem 2rem;">Logout</a>
+<section class="hero-section">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <div class="hero-text">
+            <h1>Expert Care <br>At Your Fingertips</h1>
+            <p>Connect with top-rated doctors and hospitals instantly. Manage your appointments, health records, and medical consultations in one secure place.</p>
+            <div class="hero-btns">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'find_doctors' %}" class="btn btn-primary hero-btn">Find a Doctor</a>
+                    <a href="{% url 'find_doctors' %}" class="btn btn-primary hero-btn" style="background: var(--input-bg);">Book Appointment</a>
+                {% else %}
+                    <a href="{% url 'register' %}" class="btn btn-primary hero-btn">Get Started Now</a>
+                    <a href="{% url 'login' %}" class="btn btn-primary hero-btn" style="background: var(--input-bg);">Learn More</a>
+                {% endif %}
             </div>
-        {% else %}
-            <p>Welcome to Mediconnect. Please login or register to continue.</p>
-            <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center;">
-                <a href="{% url 'login' %}" class="btn btn-primary" style="display: inline-flex; width: auto; padding: 0.75rem 2rem;">Login</a>
-                <a href="{% url 'register' %}" class="btn btn-primary" style="display: inline-flex; width: auto; padding: 0.75rem 2rem; background: var(--input-bg);">Register</a>
-            </div>
-        {% endif %}
+        </div>
     </div>
-</div>
+</section>
+
+{% if user.is_authenticated and user.role == 'PATIENT' %}
+<section class="section-container">
+    <div class="section-header">
+        <div class="section-title">
+            <h2>Your Dashboard</h2>
+            <p>Overview of your upcoming medical activities.</p>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="glass-card appointment-card">
+            <div style="flex: 1;">
+                <h3 style="margin-bottom: 0.5rem;">Upcoming Appointments</h3>
+                {% if upcoming_appointments %}
+                    {% for appt in upcoming_appointments %}
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-top: 1.5rem; border-top: 1px solid var(--glass-border); padding-top: 1.5rem;">
+                        <div class="date-badge">
+                            <span class="day">{{ appt.appointment_date|date:"d" }}</span>
+                            <span class="month">{{ appt.appointment_date|date:"M" }}</span>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600;">Dr. {{ appt.doctor.user.get_full_name|default:appt.doctor.user.username }}</div>
+                            <div style="font-size: 0.85rem; color: var(--text-muted);">{{ appt.start_time|time:"H:i" }} - {{ appt.end_time|time:"H:i" }}</div>
+                            <div class="tag" style="margin-top: 0.5rem; display: inline-block;">{{ appt.consultation_mode }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="color: var(--text-muted); margin-top: 1rem;">No upcoming appointments.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="glass-card" style="padding: 2rem;">
+            <h3 style="margin-bottom: 1.5rem;">Quick Actions</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <a href="{% url 'find_doctors' %}" class="btn" style="background: rgba(99, 102, 241, 0.1); color: var(--primary); font-size: 0.9rem; padding: 1.5rem 1rem; flex-direction: column;">
+                    <span style="font-size: 1.5rem;">🔍</span>
+                    Find Doctor
+                </a>
+                <a href="{% url 'hospital_list' %}" class="btn" style="background: rgba(236, 72, 153, 0.1); color: var(--secondary); font-size: 0.9rem; padding: 1.5rem 1rem; flex-direction: column;">
+                    <span style="font-size: 1.5rem;">🏥</span>
+                    Hospitals
+                </a>
+                <a href="{% url 'medical_records' %}" class="btn" style="background: rgba(139, 92, 246, 0.1); color: var(--accent); font-size: 0.9rem; padding: 1.5rem 1rem; flex-direction: column;">
+                    <span style="font-size: 1.5rem;">📄</span>
+                    Records
+                </a>
+                <a href="{% url 'notifications' %}" class="btn" style="background: rgba(255, 255, 255, 0.05); color: var(--text-muted); font-size: 0.9rem; padding: 1.5rem 1rem; flex-direction: column;">
+                    <span style="font-size: 1.5rem;">🔔</span>
+                    Notifications
+                </a>
+                <a href="{% url 'update_profile' %}" class="btn" style="background: rgba(129, 140, 248, 0.1); color: #818cf8; font-size: 0.9rem; padding: 1.5rem 1rem; flex-direction: column; grid-column: span 2;">
+                    <span style="font-size: 1.5rem;">👤</span>
+                    Manage Profile
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<section class="section-container">
+    <div class="section-header">
+        <div class="section-title">
+            <h2>Featured Doctors</h2>
+            <p>Top-rated medical professionals across various specializations.</p>
+        </div>
+        <a href="{% url 'find_doctors' %}" class="view-all">Explore All Doctors →</a>
+    </div>
+
+    <div class="cards-grid">
+        {% for doctor in featured_doctors %}
+        <div class="glass-card entity-card">
+            <div class="entity-img">👨‍⚕️</div>
+            <div class="entity-info">
+                <h3>Dr. {{ doctor.user.get_full_name|default:doctor.user.username }}</h3>
+                <div class="tags">
+                    <span class="tag">{{ doctor.specialization }}</span>
+                    <span class="tag">{{ doctor.experience_years }} Years Exp</span>
+                </div>
+                <p>{{ doctor.bio|truncatewords:15|default:"Expert in their field providing premium healthcare services." }}</p>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: 700; color: white;">${{ doctor.fees_online }}</span>
+                    <a href="#" class="btn btn-primary" style="width: auto; padding: 0.5rem 1.25rem; font-size: 0.85rem;">Book Now</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p style="color: var(--text-muted);">No doctors available at the moment.</p>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="section-container" style="margin-bottom: 8rem;">
+    <div class="section-header">
+        <div class="section-title">
+            <h2>Top Hospitals</h2>
+            <p>World-class healthcare facilities in your area.</p>
+        </div>
+        <a href="{% url 'hospital_list' %}" class="view-all">View All Hospitals →</a>
+    </div>
+
+    <div class="cards-grid">
+        {% for hospital in hospitals %}
+        <div class="glass-card entity-card">
+            <div class="entity-img">🏥</div>
+            <div class="entity-info">
+                <h3>{{ hospital.name }}</h3>
+                <div class="tags">
+                    <span class="tag">{{ hospital.state }}</span>
+                </div>
+                <p>{{ hospital.address|truncatewords:15 }}</p>
+                <a href="#" class="btn btn-primary" style="background: var(--input-bg);">View Details</a>
+            </div>
+        </div>
+        {% empty %}
+        <p style="color: var(--text-muted);">No hospitals found.</p>
+        {% endfor %}
+    </div>
+</section>
 {% endblock %}
