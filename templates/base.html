@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,11 +18,12 @@
             position: sticky;
             top: 0;
             z-index: 1000;
-            background: rgba(15, 23, 42, 0.8);
+            background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--glass-border);
+            border-bottom: 1px solid #f3f4f6;
             padding: 1rem 0;
         }
+
         .nav-container {
             max-width: 1200px;
             margin: 0 auto;
@@ -30,46 +32,83 @@
             justify-content: space-between;
             align-items: center;
         }
+
         .logo {
             font-size: 1.5rem;
             font-weight: 800;
             text-decoration: none;
-            background: linear-gradient(to right, #818cf8, #c084fc);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: #111827;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
+
+        .logo img {
+            height: 32px;
+            object-fit: contain;
+        }
+
         .nav-links {
             display: flex;
             gap: 2rem;
             align-items: center;
         }
+
         .nav-links a {
-            color: var(--text-muted);
+            color: #6b7280;
             text-decoration: none;
             font-weight: 500;
             transition: color 0.2s;
             font-size: 0.95rem;
         }
+
         .nav-links a:hover {
-            color: white;
+            color: #111827;
         }
+
         .nav-auth {
             display: flex;
             gap: 1rem;
         }
+
         .btn-nav {
             padding: 0.5rem 1.25rem;
             font-size: 0.9rem;
             width: auto;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-decoration: none;
+            border: 1px solid transparent;
         }
-        
+
+        .btn-nav.login {
+            background: #ffffff;
+            color: #111827;
+            border-color: #d1d5db;
+        }
+
+        .btn-nav.login:hover {
+            background: #f9fafb;
+        }
+
+        .btn-nav.register {
+            background: #000000;
+            color: #ffffff;
+        }
+
+        .btn-nav.register:hover {
+            background: #374151;
+        }
+
         footer {
-            background: rgba(0, 0, 0, 0.3);
-            border-top: 1px solid var(--glass-border);
+            background: #fdfdfd;
+            border-top: 1px solid #f3f4f6;
             padding: 4rem 0 2rem;
             margin-top: auto;
+            color: #111827;
         }
+
         .footer-content {
             max-width: 1200px;
             margin: 0 auto;
@@ -78,37 +117,47 @@
             grid-template-columns: 2fr 1fr 1fr;
             gap: 4rem;
         }
+
         .footer-logo h2 {
             font-size: 1.5rem;
             margin-bottom: 1rem;
             text-align: left;
+            color: #111827;
         }
+
         .footer-section h3 {
             font-size: 1.1rem;
             margin-bottom: 1.5rem;
-            color: white;
+            color: #111827;
         }
+
         .footer-section ul {
             list-style: none;
+            padding: 0;
+            margin: 0;
         }
+
         .footer-section ul li {
             margin-bottom: 0.75rem;
         }
+
         .footer-section ul li a {
-            color: var(--text-muted);
+            color: #6b7280;
             text-decoration: none;
             transition: color 0.2s;
         }
+
         .footer-section ul li a:hover {
-            color: var(--primary);
+            color: #111827;
         }
+
         .footer-bottom {
             max-width: 1200px;
             margin: 2rem auto 0;
             padding: 2rem 2rem 0;
-            border-top: 1px solid var(--glass-border);
+            border-top: 1px solid #f3f4f6;
             text-align: center;
-            color: var(--text-muted);
+            color: #9ca3af;
             font-size: 0.9rem;
         }
 
@@ -117,36 +166,42 @@
                 grid-template-columns: 1fr;
                 gap: 2rem;
             }
+
             .nav-links {
                 display: none;
             }
         }
     </style>
 </head>
+
 <body>
     <nav>
         <div class="nav-container">
-            <a href="{% url 'home' %}" class="logo">Mediconnect</a>
+            <a href="{% url 'home' %}" class="logo">
+                <img src="{% static 'images/logo.png' %}" alt="Mediconnect Logo"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                <span style="display:none;">Mediconnect</span>
+            </a>
             <div class="nav-links">
                 <a href="{% url 'home' %}">Home</a>
                 {% if user.is_authenticated %}
-                    {% if user.role == 'DOCTOR' %}
-                        <a href="{% url 'doctor_dashboard' %}">Dashboard</a>
-                        <a href="{% url 'manage_availability' %}">Availability</a>
-                    {% else %}
-                        <a href="{% url 'find_doctors' %}">Find Doctors</a>
-                        <a href="{% url 'medical_records' %}">My Records</a>
-                    {% endif %}
-                    <a href="{% url 'update_profile' %}">Profile</a>
+                {% if user.role == 'DOCTOR' %}
+                <a href="{% url 'doctor_dashboard' %}">Dashboard</a>
+                <a href="{% url 'manage_availability' %}">Availability</a>
+                {% else %}
+                <a href="{% url 'find_doctors' %}">Find Doctors</a>
+                <a href="{% url 'medical_records' %}">My Records</a>
+                {% endif %}
+                <a href="{% url 'update_profile' %}">Profile</a>
                 {% endif %}
             </div>
             <div class="nav-auth">
                 {% if user.is_authenticated %}
-                    <span style="color: var(--text-muted); margin-right: 1rem; align-self: center;">Hi, {{ user.username }}</span>
-                    <a href="{% url 'logout' %}" class="btn btn-primary btn-nav" style="background: var(--input-bg);">Logout</a>
+                <span style="color: #6b7280; margin-right: 1rem; align-self: center;">Hi, {{ user.username }}</span>
+                <a href="{% url 'logout' %}" class="btn-nav login">Logout</a>
                 {% else %}
-                    <a href="{% url 'login' %}" class="btn btn-primary btn-nav" style="background: var(--input-bg); border: 1px solid var(--glass-border);">Login</a>
-                    <a href="{% url 'register' %}" class="btn btn-primary btn-nav">Register</a>
+                <a href="{% url 'login' %}" class="btn-nav login">Login</a>
+                <a href="{% url 'register' %}" class="btn-nav register">Register</a>
                 {% endif %}
             </div>
         </div>
@@ -156,9 +211,9 @@
     <div class="container" style="padding-bottom: 0;">
         <div class="messages">
             {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">
-                    {{ message }}
-                </div>
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
             {% endfor %}
         </div>
     </div>
@@ -172,7 +227,8 @@
         <div class="footer-content">
             <div class="footer-logo">
                 <h2 class="logo">Mediconnect</h2>
-                <p style="color: var(--text-muted); line-height: 1.6;">Connecting patients with the best healthcare professionals and hospitals. Your health is our priority, anytime, anywhere.</p>
+                <p style="color: var(--text-muted); line-height: 1.6;">Connecting patients with the best healthcare
+                    professionals and hospitals. Your health is our priority, anytime, anywhere.</p>
             </div>
             <div class="footer-section">
                 <h3>Quick Links</h3>
@@ -199,4 +255,5 @@
 
     {% block extra_js %}{% endblock %}
 </body>
+
 </html>

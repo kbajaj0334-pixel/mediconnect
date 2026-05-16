@@ -88,7 +88,22 @@ def doctor_dashboard(request):
         return redirect('home')
     
     doctor = DoctorProfile.objects.get(user=request.user)
-    return render(request, 'accounts/doctor_dashboard.html', {'doctor': doctor})
+    
+    from booking.models import Appointment
+    from datetime import date
+    
+    today = date.today()
+    today_appointments = Appointment.objects.filter(doctor=doctor, appointment_date=today).order_by('start_time')
+    total_patients = Appointment.objects.filter(doctor=doctor).values('patient').distinct().count()
+    
+    # Context
+    context = {
+        'doctor': doctor,
+        'today_appointments': today_appointments,
+        'total_patients': total_patients,
+    }
+    
+    return render(request, 'accounts/doctor_dashboard.html', context)
 
 @login_required
 def manage_availability(request):

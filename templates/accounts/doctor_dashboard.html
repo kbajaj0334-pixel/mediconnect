@@ -1,135 +1,505 @@
-{% extends 'base.html' %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
 
-{% block title %}Doctor Dashboard | Mediconnect{% endblock %}
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Doctor Dashboard | Mediconnect</title>
 
-{% block extra_css %}
-<style>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background: #f4f7fc;
+      color: #000000;
+    }
+
+    /* Layout */
     .dashboard-container {
-        width: 100%;
-        max-width: 1200px;
-        padding: 4rem 2rem;
-        margin: 0 auto;
-    }
-    .welcome-card {
-        padding: 4rem;
-        margin-bottom: 3rem;
-        text-align: left;
-    }
-    .welcome-card h1 {
-        text-align: left;
-        margin-bottom: 1rem;
-    }
-    .welcome-card .subtitle {
-        text-align: left;
-        margin-bottom: 0;
-        font-size: 1.1rem;
-    }
-    
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 2rem;
-        margin-bottom: 3rem;
-    }
-    .stat-item {
-        padding: 2.5rem;
-        text-align: center;
-    }
-    .stat-label {
-        color: var(--text-muted);
-        font-size: 0.875rem;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        margin-bottom: 1rem;
-    }
-    .stat-value {
-        font-size: 2.5rem;
-        font-weight: 800;
-        color: white;
-    }
-    
-    .action-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-        gap: 2rem;
-    }
-    .action-item {
-        padding: 3rem;
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-    }
-    .action-item h2 {
-        font-size: 1.75rem;
-        font-weight: 700;
-        color: white;
-    }
-    .action-item p {
-        color: var(--text-muted);
-        line-height: 1.7;
-    }
-    .btn-action {
-        margin-top: auto;
+      display: flex;
+      min-height: 100vh;
     }
 
-    @media (max-width: 768px) {
-        .action-grid {
-            grid-template-columns: 1fr;
-        }
-        .welcome-card {
-            padding: 2.5rem;
-        }
+    /* Sidebar */
+    .sidebar {
+      width: 260px;
+      background: white;
+      padding: 40px 20px;
+      border-right: 1px solid #e6ecf5;
+      display: flex;
+      flex-direction: column;
     }
-</style>
-{% endblock %}
 
-{% block content %}
-<div class="dashboard-container">
-    <div class="glass-card welcome-card" style="display: flex; justify-content: space-between; align-items: center;">
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 50px;
+    }
+
+    .logo-container img {
+      width: 200px;
+      object-fit: contain;
+    }
+
+    .menu {
+      list-style: none;
+      flex: 1;
+    }
+
+    .menu li {
+      margin-bottom: 8px;
+    }
+
+    .menu li a {
+      text-decoration: none;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      color: #5b6b7c;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .menu li:hover a,
+    .menu li.active a {
+      background: #1f6fff;
+      color: white;
+    }
+
+    .emergency-box {
+      margin-top: auto;
+      background: #fff2f2;
+      padding: 20px;
+      border-radius: 18px;
+      text-align: center;
+    }
+
+    .emergency-box h3 {
+      color: #ff4d4d;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .emergency-box p {
+      margin-top: 8px;
+      font-weight: 600;
+      font-size: 13px;
+      color: #000000;
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      padding: 50px 60px;
+      overflow-y: auto;
+    }
+
+    /* Topbar */
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 40px;
+    }
+
+    .topbar h1 {
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+    }
+
+    .topbar p {
+      color: #7b8ba1;
+      font-size: 15px;
+    }
+
+    .profile {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .profile i {
+      font-size: 20px;
+      color: #7b8ba1;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .profile i:hover {
+      color: #1f6fff;
+    }
+
+    .profile-box {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 8px 16px;
+      border: 1px solid #e6ecf5;
+      border-radius: 50px;
+      background: white;
+    }
+
+    .profile-box img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .profile-info h4 {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .profile-info p {
+      font-size: 12px;
+      color: #7b8ba1;
+      margin-top: 2px;
+    }
+
+    /* Cards */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    .card {
+      background: white;
+      padding: 25px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .blue { background: #eaf2ff; color: #1f6fff; }
+    .green { background: #e8fff2; color: #16a34a; }
+    .purple { background: #f3ebff; color: #7c3aed; }
+    .orange { background: #fff2e5; color: #f97316; }
+
+    .card p {
+      color: #7b8ba1;
+      margin-bottom: 8px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .card h2 {
+      font-size: 32px;
+      font-weight: 600;
+      letter-spacing: -1px;
+    }
+
+    .card span {
+      font-size: 13px;
+      font-weight: 500;
+      color: #16a34a;
+    }
+
+    /* Table */
+    .table-section {
+      background: white;
+      border-radius: 22px;
+      padding: 30px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    }
+
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .table-header h2 {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .table-header button {
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      background: #1f6fff;
+      color: white;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .table-header button:hover {
+      opacity: 0.9;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    table th {
+      text-align: left;
+      padding: 16px;
+      color: #5b6b7c;
+      font-weight: 500;
+      font-size: 14px;
+      border-bottom: 1px solid #edf2f7;
+    }
+
+    table td {
+      padding: 20px 16px;
+      border-bottom: 1px solid #edf2f7;
+      font-size: 15px;
+    }
+
+    table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .status {
+      padding: 8px 14px;
+      border-radius: 30px;
+      font-size: 12px;
+      font-weight: 500;
+      display: inline-block;
+    }
+
+    .status.PENDING { background: #fff7ed; color: #f97316; }
+    .status.APPROVED { background: #dbeafe; color: #2563eb; }
+    .status.COMPLETED { background: #dcfce7; color: #16a34a; }
+    .status.CANCELLED { background: #fee2e2; color: #991b1b; }
+
+    /* Responsive */
+    @media(max-width: 1200px) {
+      .cards { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media(max-width: 768px) {
+      .dashboard-container { flex-direction: column; }
+      .sidebar { width: 100%; padding: 20px; border-right: none; border-bottom: 1px solid #e6ecf5; }
+      .cards { grid-template-columns: 1fr; }
+      .main-content { padding: 30px 20px; }
+      .topbar { flex-direction: column; align-items: flex-start; gap: 20px; }
+      table { display: block; overflow-x: auto; white-space: nowrap; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="dashboard-container">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+
+      <a href="{% url 'home' %}" style="text-decoration: none;">
+        <div class="logo-container">
+          <!-- Add the logo image. Fallback to an icon if not found -->
+          <img src="{% static 'images/logo.png' %}" alt="Logo"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        </div>
+      </a>
+
+      <ul class="menu">
+        <li class="active">
+          <a href="{% url 'doctor_dashboard' %}">
+            <i class="fa-solid fa-house"></i> Dashboard
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'manage_availability' %}">
+            <i class="fa-regular fa-clock"></i> Schedule
+          </a>
+        </li>
+        <li>
+          <a href="#">
+            <i class="fa-regular fa-calendar"></i> Appointments
+          </a>
+        </li>
+        <li>
+          <a href="#">
+            <i class="fa-solid fa-user"></i> Patients
+          </a>
+        </li>
+        <li>
+          <a href="#">
+            <i class="fa-regular fa-file"></i> Prescriptions
+          </a>
+        </li>
+        <li>
+          <a href="#">
+            <i class="fa-regular fa-folder"></i> Patient Records
+          </a>
+        </li>
+        <li>
+          <a href="#">
+            <i class="fa-solid fa-chart-column"></i> Reports
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'update_profile' %}">
+            <i class="fa-solid fa-gear"></i> Settings
+          </a>
+        </li>
+        <li style="margin-top: 20px;">
+          <a href="{% url 'logout' %}" style="color: #ff4d4d;">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout
+          </a>
+        </li>
+      </ul>
+
+      <div class="emergency-box">
+        <h3>Emergency Help</h3>
+        <p>+91 12345 67890</p>
+      </div>
+
+    </aside>
+
+    <!-- Main -->
+    <main class="main-content">
+
+      <!-- Top -->
+      <div class="topbar">
         <div>
-            <h1>Dr. {{ doctor.user.get_full_name|default:doctor.user.username }}</h1>
-            <p class="subtitle">Healthcare Professional Dashboard | {{ doctor.specialization }}</p>
+          <h1>Overview</h1>
+          <p>Welcome back, Dr. {{ doctor.user.get_full_name|default:doctor.user.username }}</p>
         </div>
-        <a href="{% url 'update_profile' %}" class="btn btn-primary" style="width: auto; padding: 0.75rem 1.5rem; background: rgba(129, 140, 248, 0.1); border: 1px solid #818cf8; color: #818cf8;">
-            Update Profile
-        </a>
-    </div>
 
-    <div class="stats-grid">
-        <div class="glass-card stat-item">
-            <div class="stat-label">Experience</div>
-            <div class="stat-value">{{ doctor.experience_years }} Yrs</div>
+        <div class="profile">
+          <i class="fa-regular fa-bell"></i>
+          <div class="profile-box">
+            <img
+              src="{% if doctor.doctor_pic %}{{ doctor.doctor_pic.url }}{% else %}https://ui-avatars.com/api/?name={{ doctor.user.get_full_name|default:doctor.user.username|urlencode }}&background=f3f4f6&color=111827{% endif %}"
+              alt="Profile">
+            <div class="profile-info">
+              <h4>Dr. {{ doctor.user.get_full_name|default:doctor.user.username }}</h4>
+              <p>{{ doctor.specialization }}</p>
+            </div>
+          </div>
         </div>
-        <div class="glass-card stat-item">
-            <div class="stat-label">Online Fee</div>
-            <div class="stat-value">₹{{ doctor.fees_online }}</div>
-        </div>
-        <div class="glass-card stat-item">
-            <div class="stat-label">Hospital</div>
-            <div class="stat-value" style="font-size: 1.25rem;">{{ doctor.hospital.name }}</div>
-        </div>
-    </div>
+      </div>
 
-    <div class="action-grid">
-        <div class="glass-card action-item">
-            <div>
-                <h2>Manage Availability</h2>
-                <p>Configure your weekly consultation hours and appointment slot durations. Maintaining an up-to-date schedule ensures seamless patient bookings.</p>
-            </div>
-            <a href="{% url 'manage_availability' %}" class="btn btn-primary btn-action">
-                Configure Schedule
-            </a>
+      <!-- Cards -->
+      <div class="cards">
+        <div class="card">
+          <div class="icon blue">
+            <i class="fa-solid fa-briefcase-medical"></i>
+          </div>
+          <div>
+            <p>Experience</p>
+            <h2>{{ doctor.experience_years }} Yrs</h2>
+            <span>Active Practitioner</span>
+          </div>
         </div>
-        
-        <div class="glass-card action-item">
-            <div>
-                <h2>Consultation History</h2>
-                <p>Review your previous interactions, patient records, and upcoming appointments. Stay informed about your clinical history.</p>
-            </div>
-            <a href="#" class="btn btn-primary btn-action" style="background: var(--input-bg); border: 1px solid var(--glass-border);">
-                View Appointments
-            </a>
+
+        <div class="card">
+          <div class="icon green">
+            <i class="fa-solid fa-indian-rupee-sign"></i>
+          </div>
+          <div>
+            <p>Online Fee</p>
+            <h2>₹{{ doctor.fees_online }}</h2>
+            <span>Per Session</span>
+          </div>
         </div>
-    </div>
-</div>
-{% endblock %}
+
+        <div class="card">
+          <div class="icon purple">
+            <i class="fa-regular fa-hospital"></i>
+          </div>
+          <div>
+            <p>Hospital</p>
+            <h2 title="{{ doctor.hospital.name }}" style="font-size: 20px; margin-top: 8px;">
+              {{ doctor.hospital.name|truncatechars:20 }}</h2>
+            <span>Affiliated Clinic</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="icon orange">
+            <i class="fa-regular fa-user"></i>
+          </div>
+          <div>
+            <p>Total Patients</p>
+            <h2>{{ total_patients }}</h2>
+            <span>Served to date</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Appointment Table -->
+      <div class="table-section">
+        <div class="table-header">
+          <h2>Today's Appointments</h2>
+          <button>View All</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Patient Name</th>
+              <th>Gender/Age</th>
+              <th>Reason</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for appt in today_appointments %}
+            <tr>
+              <td style="font-weight: 500;">{{ appt.start_time|time:"h:i A" }}</td>
+              <td>{{ appt.patient.user.get_full_name|default:appt.patient.user.username }}</td>
+              <td style="color: var(--text-muted);">{{ appt.patient.gender|default:"N/A" }}</td>
+              <td>{{ appt.symptoms|default:"Checkup" }}</td>
+              <td><span class="status {{ appt.status }}">{{ appt.status|title }}</span></td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 40px 0;">
+                No appointments for today. Take a rest!
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    </main>
+  </div>
+
+</body>
+
+</html>

@@ -4,19 +4,38 @@
 
 {% block extra_css %}
 <style>
+    :root {
+        --bg-color: #fdfdfd;
+        --surface-color: #ffffff;
+        --text-main: #111827;
+        --text-muted: #6b7280;
+        --border-color: #f3f4f6;
+        --primary: #000000;
+        --primary-hover: #374151;
+        --hover-bg: #f9fafb;
+    }
+
+    body {
+        background-color: var(--bg-color);
+        color: var(--text-main);
+        font-family: 'Inter', 'Poppins', sans-serif;
+    }
+
     .hero-section {
         height: 600px;
         position: relative;
         overflow: hidden;
         display: flex;
         align-items: center;
-        background: url('C:/Users/Mantript Singh/.gemini/antigravity/brain/8eb360b2-1352-4c8e-8b4e-71936ff60864/mediconnect_hero_1778760480895.png') center/cover no-repeat;
+        background: url(/static/images/patientlogin.jpeg) center/cover no-repeat;
     }
+
     .hero-overlay {
         position: absolute;
         inset: 0;
-        background: linear-gradient(to right, rgba(15, 23, 42, 0.9) 30%, rgba(15, 23, 42, 0.4) 100%);
+        background: linear-gradient(to right, rgba(255, 255, 255, 0.95) 30%, rgba(255, 255, 255, 0.5) 100%);
     }
+
     .hero-content {
         position: relative;
         z-index: 10;
@@ -25,26 +44,56 @@
         padding: 0 2rem;
         width: 100%;
     }
+
     .hero-text h1 {
         text-align: left;
-        font-size: 4rem;
+        font-size: 4.5rem;
+        font-weight: 700;
+        letter-spacing: -1.5px;
         margin-bottom: 1.5rem;
         line-height: 1.1;
+        color: var(--text-main);
     }
+
     .hero-text p {
-        font-size: 1.25rem;
+        font-size: 1.2rem;
         color: var(--text-muted);
         max-width: 600px;
         margin-bottom: 3rem;
         line-height: 1.6;
     }
+
     .hero-btns {
         display: flex;
         gap: 1.5rem;
     }
+
     .hero-btn {
         width: auto;
         padding: 1rem 2.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .hero-btn.primary {
+        background: var(--primary);
+        color: white;
+        border: 1px solid var(--primary);
+    }
+
+    .hero-btn.primary:hover {
+        background: var(--primary-hover);
+    }
+
+    .hero-btn.secondary {
+        background: white;
+        color: var(--text-main);
+        border: 1px solid var(--border-color);
+    }
+
+    .hero-btn.secondary:hover {
+        background: var(--hover-bg);
     }
 
     .section-container {
@@ -52,26 +101,36 @@
         margin: 6rem auto;
         padding: 0 2rem;
     }
+
     .section-header {
         display: flex;
         justify-content: space-between;
         align-items: flex-end;
         margin-bottom: 3rem;
     }
+
     .section-title h2 {
-        font-size: 2.25rem;
-        font-weight: 800;
-        color: white;
+        font-size: 2.5rem;
+        font-weight: 700;
+        letter-spacing: -1px;
+        color: var(--text-main);
         margin-bottom: 0.5rem;
     }
+
     .section-title p {
         color: var(--text-muted);
     }
+
     .view-all {
         color: var(--primary);
         text-decoration: none;
         font-weight: 600;
         font-size: 0.95rem;
+        transition: opacity 0.2s;
+    }
+
+    .view-all:hover {
+        opacity: 0.7;
     }
 
     /* Dashboard Cards */
@@ -81,26 +140,37 @@
         gap: 2rem;
         margin-bottom: 4rem;
     }
+
+    .glass-card {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+    }
+
     .appointment-card {
-        padding: 2rem;
+        padding: 2.5rem;
         display: flex;
         gap: 1.5rem;
         align-items: center;
     }
+
     .date-badge {
-        background: rgba(99, 102, 241, 0.1);
-        border: 1px solid var(--primary);
+        background: var(--hover-bg);
+        border: 1px solid var(--border-color);
         padding: 1rem;
         border-radius: 16px;
         text-align: center;
         min-width: 80px;
     }
+
     .date-badge .day {
         display: block;
         font-size: 1.5rem;
-        font-weight: 800;
-        color: var(--primary);
+        font-weight: 700;
+        color: var(--text-main);
     }
+
     .date-badge .month {
         font-size: 0.75rem;
         text-transform: uppercase;
@@ -114,18 +184,23 @@
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 2rem;
     }
+
     .entity-card {
         padding: 1.5rem;
-        transition: transform 0.3s;
+        transition: transform 0.2s, box-shadow 0.2s;
     }
+
     .entity-card:hover {
-        transform: translateY(-8px);
+        transform: translateY(-4px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
     }
+
     .entity-img {
         width: 100%;
         height: 200px;
-        background: var(--input-bg);
-        border-radius: 16px;
+        background: var(--hover-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
         margin-bottom: 1.5rem;
         display: flex;
         align-items: center;
@@ -133,35 +208,71 @@
         color: var(--text-muted);
         font-size: 3rem;
     }
+
     .entity-info h3 {
         font-size: 1.25rem;
+        font-weight: 600;
         margin-bottom: 0.5rem;
-        color: white;
+        color: var(--text-main);
     }
+
     .entity-info p {
         color: var(--text-muted);
         font-size: 0.9rem;
         margin-bottom: 1.5rem;
     }
+
     .tags {
         display: flex;
         flex-wrap: wrap;
         gap: 0.5rem;
         margin-bottom: 1.5rem;
     }
+
     .tag {
-        background: rgba(255, 255, 255, 0.05);
+        background: var(--hover-bg);
         padding: 0.25rem 0.75rem;
         border-radius: 20px;
         font-size: 0.75rem;
         color: var(--text-muted);
-        border: 1px solid var(--glass-border);
+        border: 1px solid var(--border-color);
+    }
+
+    .quick-action-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 1.5rem 1rem;
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        color: var(--text-main);
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .quick-action-btn:hover {
+        background: var(--hover-bg);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
     }
 
     @media (max-width: 768px) {
-        .hero-text h1 { font-size: 3rem; }
-        .hero-btns { flex-direction: column; }
-        .hero-section { height: auto; padding: 8rem 0 4rem; }
+        .hero-text h1 {
+            font-size: 3rem;
+        }
+
+        .hero-btns {
+            flex-direction: column;
+        }
+
+        .hero-section {
+            height: auto;
+            padding: 8rem 0 4rem;
+        }
     }
 </style>
 {% endblock %}
@@ -172,14 +283,15 @@
     <div class="hero-content">
         <div class="hero-text">
             <h1>Expert Care <br>At Your Fingertips</h1>
-            <p>Connect with top-rated doctors and hospitals instantly. Manage your appointments, health records, and medical consultations in one secure place.</p>
+            <p>Connect with top-rated doctors and hospitals instantly. Manage your appointments, health records, and
+                medical consultations in one secure place.</p>
             <div class="hero-btns">
                 {% if user.is_authenticated %}
-                    <a href="{% url 'find_doctors' %}" class="btn btn-primary hero-btn">Find a Doctor</a>
-                    <a href="{% url 'find_doctors' %}" class="btn btn-primary hero-btn" style="background: var(--input-bg);">Book Appointment</a>
+                <a href="{% url 'find_doctors' %}" class="btn hero-btn primary">Find a Doctor</a>
+                <a href="{% url 'find_doctors' %}" class="btn hero-btn secondary">Book Appointment</a>
                 {% else %}
-                    <a href="{% url 'register' %}" class="btn btn-primary hero-btn">Get Started Now</a>
-                    <a href="{% url 'login' %}" class="btn btn-primary hero-btn" style="background: var(--input-bg);">Learn More</a>
+                <a href="{% url 'register' %}" class="btn hero-btn primary">Get Started Now</a>
+                <a href="{% url 'login' %}" class="btn hero-btn secondary">Learn More</a>
                 {% endif %}
             </div>
         </div>
@@ -190,7 +302,7 @@
 <section class="section-container">
     <div class="section-header">
         <div class="section-title">
-            <h2>Your Dashboard</h2>
+            <h2 style="color:white">Your Dashboard</h2>
             <p>Overview of your upcoming medical activities.</p>
         </div>
     </div>
@@ -198,47 +310,54 @@
     <div class="dashboard-grid">
         <div class="glass-card appointment-card">
             <div style="flex: 1;">
-                <h3 style="margin-bottom: 0.5rem;">Upcoming Appointments</h3>
+                <h3 style="margin-bottom: 0.5rem; color: var(--text-main);">Upcoming Appointments</h3>
                 {% if upcoming_appointments %}
-                    {% for appt in upcoming_appointments %}
-                    <div style="display: flex; align-items: center; gap: 1rem; margin-top: 1.5rem; border-top: 1px solid var(--glass-border); padding-top: 1.5rem;">
-                        <div class="date-badge">
-                            <span class="day">{{ appt.appointment_date|date:"d" }}</span>
-                            <span class="month">{{ appt.appointment_date|date:"M" }}</span>
+                {% for appt in upcoming_appointments %}
+                <div
+                    style="display: flex; align-items: center; gap: 1rem; margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+                    <div class="date-badge">
+                        <span class="day">{{ appt.appointment_date|date:"d" }}</span>
+                        <span class="month">{{ appt.appointment_date|date:"M" }}</span>
+                    </div>
+                    <div>
+                        <div style="font-weight: 600; color: var(--text-main);">
+                            Dr. {{ appt.doctor.user.get_full_name|default:appt.doctor.user.username }}
                         </div>
-                        <div>
-                            <div style="font-weight: 600;">Dr. {{ appt.doctor.user.get_full_name|default:appt.doctor.user.username }}</div>
-                            <div style="font-size: 0.85rem; color: var(--text-muted);">{{ appt.start_time|time:"H:i" }} - {{ appt.end_time|time:"H:i" }}</div>
-                            <div class="tag" style="margin-top: 0.5rem; display: inline-block;">{{ appt.consultation_mode }}</div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted);">
+                            {{ appt.start_time|time:"H:i" }} - {{ appt.end_time|time:"H:i" }}
+                        </div>
+                        <div class="tag" style="margin-top: 0.5rem; display: inline-block;">
+                            {{ appt.consultation_mode }}
                         </div>
                     </div>
-                    {% endfor %}
+                </div>
+                {% endfor %}
                 {% else %}
-                    <p style="color: var(--text-muted); margin-top: 1rem;">No upcoming appointments.</p>
+                <p style="color: var(--text-muted); margin-top: 1rem;">No upcoming appointments.</p>
                 {% endif %}
             </div>
         </div>
 
-        <div class="glass-card" style="padding: 2rem;">
-            <h3 style="margin-bottom: 1.5rem;">Quick Actions</h3>
+        <div class="glass-card" style="padding: 2.5rem;">
+            <h3 style="margin-bottom: 1.5rem; color: var(--text-main);">Quick Actions</h3>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                <a href="{% url 'find_doctors' %}" class="btn" style="background: rgba(99, 102, 241, 0.1); color: var(--primary); font-size: 0.9rem; padding: 1.5rem 1rem; flex-direction: column;">
+                <a href="{% url 'find_doctors' %}" class="quick-action-btn">
                     <span style="font-size: 1.5rem;">🔍</span>
                     Find Doctor
                 </a>
-                <a href="{% url 'hospital_list' %}" class="btn" style="background: rgba(236, 72, 153, 0.1); color: var(--secondary); font-size: 0.9rem; padding: 1.5rem 1rem; flex-direction: column;">
+                <a href="{% url 'hospital_list' %}" class="quick-action-btn">
                     <span style="font-size: 1.5rem;">🏥</span>
                     Hospitals
                 </a>
-                <a href="{% url 'medical_records' %}" class="btn" style="background: rgba(139, 92, 246, 0.1); color: var(--accent); font-size: 0.9rem; padding: 1.5rem 1rem; flex-direction: column;">
+                <a href="{% url 'medical_records' %}" class="quick-action-btn">
                     <span style="font-size: 1.5rem;">📄</span>
                     Records
                 </a>
-                <a href="{% url 'notifications' %}" class="btn" style="background: rgba(255, 255, 255, 0.05); color: var(--text-muted); font-size: 0.9rem; padding: 1.5rem 1rem; flex-direction: column;">
+                <a href="{% url 'notifications' %}" class="quick-action-btn">
                     <span style="font-size: 1.5rem;">🔔</span>
                     Notifications
                 </a>
-                <a href="{% url 'update_profile' %}" class="btn" style="background: rgba(129, 140, 248, 0.1); color: #818cf8; font-size: 0.9rem; padding: 1.5rem 1rem; flex-direction: column; grid-column: span 2;">
+                <a href="{% url 'update_profile' %}" class="quick-action-btn" style="grid-column: span 2;">
                     <span style="font-size: 1.5rem;">👤</span>
                     Manage Profile
                 </a>
@@ -251,7 +370,7 @@
 <section class="section-container">
     <div class="section-header">
         <div class="section-title">
-            <h2>Featured Doctors</h2>
+            <h2 style="color:white">Featured Doctors</h2>
             <p>Top-rated medical professionals across various specializations.</p>
         </div>
         <a href="{% url 'find_doctors' %}" class="view-all">Explore All Doctors →</a>
@@ -267,10 +386,12 @@
                     <span class="tag">{{ doctor.specialization }}</span>
                     <span class="tag">{{ doctor.experience_years }} Years Exp</span>
                 </div>
-                <p>{{ doctor.bio|truncatewords:15|default:"Expert in their field providing premium healthcare services." }}</p>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-weight: 700; color: white;">${{ doctor.fees_online }}</span>
-                    <a href="{% url 'book_appointment' doctor.id %}" class="btn btn-primary" style="width: auto; padding: 0.5rem 1.25rem; font-size: 0.85rem;">Book Now</a>
+                <p>{{ doctor.bio|truncatewords:15|default:"Expert in their field providing premium healthcare services."  }}</p>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+                    <span style="font-weight: 700; color: var(--text-main); font-size: 1.1rem;">
+                        ₹{{ doctor.fees_online  }}</span>
+                    <a href="{% url 'book_appointment' doctor.id %}" class="btn hero-btn primary"
+                        style="padding: 0.5rem 1.25rem; font-size: 0.85rem;">Book Now</a>
                 </div>
             </div>
         </div>
@@ -283,7 +404,7 @@
 <section class="section-container" style="margin-bottom: 8rem;">
     <div class="section-header">
         <div class="section-title">
-            <h2>Top Hospitals</h2>
+            <h2 style="color:white">Top Hospitals</h2>
             <p>World-class healthcare facilities in your area.</p>
         </div>
         <a href="{% url 'hospital_list' %}" class="view-all">View All Hospitals →</a>
@@ -299,7 +420,8 @@
                     <span class="tag">{{ hospital.state }}</span>
                 </div>
                 <p>{{ hospital.address|truncatewords:15 }}</p>
-                <a href="#" class="btn btn-primary" style="background: var(--input-bg);">View Details</a>
+                <a href="#" class="btn hero-btn secondary"
+                    style="display: block; text-align: center; margin-top: 1rem;">View Details</a>
             </div>
         </div>
         {% empty %}
