@@ -270,7 +270,7 @@
                 <p>{{ doctor.bio|truncatewords:15|default:"Expert in their field providing premium healthcare services." }}</p>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <span style="font-weight: 700; color: white;">${{ doctor.fees_online }}</span>
-                    <a href="#" class="btn btn-primary" style="width: auto; padding: 0.5rem 1.25rem; font-size: 0.85rem;">Book Now</a>
+                    <a href="{% url 'book_appointment' doctor.id %}" class="btn btn-primary" style="width: auto; padding: 0.5rem 1.25rem; font-size: 0.85rem;">Book Now</a>
                 </div>
             </div>
         </div>

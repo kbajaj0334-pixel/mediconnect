@@ -1,0 +1,255 @@
+{% extends 'base.html' %}
+
+{% block title %}Book Appointment - Dr. {{ doctor.user.get_full_name|default:doctor.user.username }} | Mediconnect{% endblock %}
+
+{% block extra_css %}
+<style>
+    .booking-container {
+        max-width: 900px;
+        margin: 4rem auto;
+        padding: 0 2rem;
+    }
+    .doctor-header {
+        display: flex;
+        gap: 2rem;
+        align-items: center;
+        background: var(--card-bg);
+        padding: 2rem;
+        border-radius: 24px;
+        border: 1px solid var(--glass-border);
+        margin-bottom: 2rem;
+    }
+    .doctor-avatar {
+        width: 100px;
+        height: 100px;
+        background: var(--primary);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+    }
+    .booking-form-card {
+        background: var(--card-bg);
+        padding: 2.5rem;
+        border-radius: 24px;
+        border: 1px solid var(--glass-border);
+    }
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--text-muted);
+    }
+    .form-control {
+        width: 100%;
+        padding: 1rem;
+        background: var(--input-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 12px;
+        color: white;
+    }
+    .slots-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    .slot-btn {
+        background: var(--input-bg);
+        border: 1px solid var(--glass-border);
+        color: white;
+        padding: 0.75rem;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-align: center;
+    }
+    .slot-btn:hover {
+        background: var(--primary);
+        border-color: var(--primary);
+    }
+    .slot-btn.selected {
+        background: var(--primary);
+        border-color: var(--primary);
+        font-weight: 700;
+    }
+    .emergency-section {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-top: 2rem;
+        display: none;
+    }
+    .emergency-toggle {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+    .emergency-toggle label {
+        color: #ef4444;
+        font-weight: 700;
+        cursor: pointer;
+    }
+    .symptoms-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    .symptom-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="booking-container">
+    <div class="doctor-header glass-card">
+        <div class="doctor-avatar">👨‍⚕️</div>
+        <div>
+            <h2>Dr. {{ doctor.user.get_full_name|default:doctor.user.username }}</h2>
+            <p style="color: var(--primary); font-weight: 600; margin: 0.5rem 0;">{{ doctor.specialization }}</p>
+            <p style="color: var(--text-muted);">{{ doctor.experience_years }} years experience | {{ doctor.hospital.name }}</p>
+        </div>
+    </div>
+
+    <div class="booking-form-card glass-card">
+        <h3 style="margin-bottom: 2rem;">Book Appointment</h3>
+        
+        <form method="POST" id="bookingForm">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label>Select Date</label>
+                <input type="date" id="appointment_date" name="date" class="form-control" required>
+            </div>
+            
+            <div id="slots_wrapper" class="form-group">
+                <label>Available Slots</label>
+                <div id="slots_container" class="slots-grid">
+                    <p style="color: var(--text-muted); grid-column: 1/-1;">Please select a date to see available slots.</p>
+                </div>
+                <input type="hidden" id="start_time" name="start_time" required>
+                <input type="hidden" id="end_time" name="end_time" required>
+            </div>
+
+            <div class="form-group">
+                <label>Consultation Mode</label>
+                <select name="consultation_mode" class="form-control" required>
+                    <option value="ONLINE">Online ($ {{ doctor.fees_online }})</option>
+                    <option value="OFFLINE">Offline ($ {{ doctor.fees_offline }})</option>
+                </select>
+            </div>
+
+            <div class="emergency-toggle">
+                <input type="checkbox" id="is_emergency" name="is_emergency" style="width: 20px; height: 20px;">
+                <label for="is_emergency">🚨 Emergency Booking (Automatic Slot Assignment)</label>
+            </div>
+
+            <div id="emergency_details" class="emergency-section">
+                <h4 style="color: #ef4444; margin-bottom: 1rem;">Emergency Details</h4>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">If you choose emergency booking, you don't need to manually pick a time slot. We will auto-assign the earliest available slot on the selected date.</p>
+                
+                <div class="form-group">
+                    <label style="color: #fca5a5;">Select Symptoms</label>
+                    <div class="symptoms-grid">
+                        <label class="symptom-checkbox"><input type="checkbox" name="symptoms" value="chest_pain"> Chest Pain</label>
+                        <label class="symptom-checkbox"><input type="checkbox" name="symptoms" value="breathing_difficulty"> Breathing Difficulty</label>
+                        <label class="symptom-checkbox"><input type="checkbox" name="symptoms" value="high_fever"> High Fever</label>
+                        <label class="symptom-checkbox"><input type="checkbox" name="symptoms" value="vomiting"> Vomiting</label>
+                        <label class="symptom-checkbox"><input type="checkbox" name="symptoms" value="dizziness"> Dizziness</label>
+                        <label class="symptom-checkbox"><input type="checkbox" name="symptoms" value="fatigue"> Fatigue</label>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 1.5rem;">
+                    <label style="color: #fca5a5;">Pain Level (1-10)</label>
+                    <input type="range" name="pain_level" min="1" max="10" value="1" class="form-control" style="padding: 0;" oninput="this.nextElementSibling.value = this.value">
+                    <output style="color: white; font-weight: bold; margin-left: 1rem;">1</output>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 2rem; font-size: 1.1rem;">Confirm Appointment</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateInput = document.getElementById('appointment_date');
+        const slotsContainer = document.getElementById('slots_container');
+        const startTimeInput = document.getElementById('start_time');
+        const endTimeInput = document.getElementById('end_time');
+        const doctorId = '{{ doctor.id }}';
+
+        // Set min date to today
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.min = today;
+
+        dateInput.addEventListener('change', function() {
+            const selectedDate = this.value;
+            if(!selectedDate) return;
+
+            slotsContainer.innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1;">Loading slots...</p>';
+            startTimeInput.value = '';
+            endTimeInput.value = '';
+
+            fetch(`/booking/api/available-slots/${doctorId}/${selectedDate}/`)
+                .then(response => response.json())
+                .then(data => {
+                    if(data.slots && data.slots.length > 0) {
+                        slotsContainer.innerHTML = '';
+                        data.slots.forEach(slot => {
+                            const btn = document.createElement('div');
+                            btn.className = 'slot-btn';
+                            btn.textContent = slot.start_time;
+                            btn.dataset.start = slot.start_time;
+                            btn.dataset.end = slot.end_time;
+                            
+                            btn.addEventListener('click', function() {
+                                document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+                                this.classList.add('selected');
+                                startTimeInput.value = this.dataset.start;
+                                endTimeInput.value = this.dataset.end;
+                            });
+                            
+                            slotsContainer.appendChild(btn);
+                        });
+                    } else {
+                        slotsContainer.innerHTML = '<p style="color: #ef4444; grid-column: 1/-1;">No available slots for this date.</p>';
+                    }
+                })
+                .catch(err => {
+                    slotsContainer.innerHTML = '<p style="color: #ef4444; grid-column: 1/-1;">Error loading slots.</p>';
+                });
+        });
+
+        const emergencyToggle = document.getElementById('is_emergency');
+        const emergencyDetails = document.getElementById('emergency_details');
+        const slotsWrapper = document.getElementById('slots_wrapper');
+
+        emergencyToggle.addEventListener('change', function() {
+            if(this.checked) {
+                emergencyDetails.style.display = 'block';
+                slotsWrapper.style.opacity = '0.5';
+                startTimeInput.required = false;
+                endTimeInput.required = false;
+            } else {
+                emergencyDetails.style.display = 'none';
+                slotsWrapper.style.opacity = '1';
+                startTimeInput.required = true;
+                endTimeInput.required = true;
+            }
+        });
+    });
+</script>
+{% endblock %}
