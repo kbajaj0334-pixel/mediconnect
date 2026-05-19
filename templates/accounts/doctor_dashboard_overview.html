@@ -1,0 +1,104 @@
+      <!-- Top -->
+      <div class="topbar">
+        <div>
+          <h1>Overview</h1>
+          <p>Welcome back, Dr. {{ doctor.user.get_full_name|default:doctor.user.username }}</p>
+        </div>
+
+        <div class="profile">
+          <i class="fa-regular fa-bell"></i>
+          <div class="profile-box">
+            <img
+              src="{% if doctor.doctor_pic %}{{ doctor.doctor_pic.url }}{% else %}https://ui-avatars.com/api/?name={{ doctor.user.get_full_name|default:doctor.user.username|urlencode }}&background=f3f4f6&color=111827{% endif %}"
+              alt="Profile">
+            <div class="profile-info">
+              <h4>Dr. {{ doctor.user.get_full_name|default:doctor.user.username }}</h4>
+              <p>{{ doctor.specialization }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cards -->
+      <div class="cards">
+        <div class="card">
+          <div class="icon blue">
+            <i class="fa-solid fa-briefcase-medical"></i>
+          </div>
+          <div>
+            <p>Experience</p>
+            <h2>{{ doctor.experience_years }} Yrs</h2>
+            <span>Active Practitioner</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="icon green">
+            <i class="fa-solid fa-indian-rupee-sign"></i>
+          </div>
+          <div>
+            <p>Online Fee</p>
+            <h2>₹{{ doctor.fees_online }}</h2>
+            <span>Per Session</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="icon purple">
+            <i class="fa-regular fa-hospital"></i>
+          </div>
+          <div>
+            <p>Hospital</p>
+            <h2 title="{{ doctor.hospital.name }}" style="font-size: 20px; margin-top: 8px;">
+              {{ doctor.hospital.name|truncatechars:20 }}</h2>
+            <span>Affiliated Clinic</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="icon orange">
+            <i class="fa-regular fa-user"></i>
+          </div>
+          <div>
+            <p>Total Patients</p>
+            <h2>{{ total_patients }}</h2>
+            <span>Served to date</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Appointment Table -->
+      <div class="table-section">
+        <div class="table-header">
+          <h2>Today's Appointments</h2>
+          <button>View All</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Patient Name</th>
+              <th>Gender/Age</th>
+              <th>Reason</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for appt in today_appointments %}
+            <tr>
+              <td style="font-weight: 500;">{{ appt.start_time|time:"h:i A" }}</td>
+              <td>{{ appt.patient.user.get_full_name|default:appt.patient.user.username }}</td>
+              <td style="color: var(--text-muted);">{{ appt.patient.gender|default:"N/A" }}</td>
+              <td>{{ appt.symptoms|default:"Checkup" }}</td>
+              <td><span class="status {{ appt.status }}">{{ appt.status|title }}</span></td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 40px 0;">
+                No appointments for today. Take a rest!
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>

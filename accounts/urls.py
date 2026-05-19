@@ -9,4 +9,9 @@ urlpatterns = [
     path('doctor/availability/', views.manage_availability, name='manage_availability'),
     path('doctors/find/', views.find_doctors, name='find_doctors'),
     path('profile/update/', views.update_profile_view, name='update_profile'),
+    path('doctor/appointments/', views.doctor_appointments, name='doctor_appointments'),
+    path('doctor/patients/', views.doctor_patients, name='doctor_patients'),
+    path('doctor/prescriptions/', views.doctor_prescriptions, name='doctor_prescriptions'),
+    path('doctor/records/', views.doctor_records, name='doctor_records'),
+    path('doctor/reports/', views.doctor_reports, name='doctor_reports'),
 ]

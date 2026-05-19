@@ -250,3 +250,38 @@ def update_profile_view(request):
         'role': user.role
     }
     return render(request, 'accounts/updateprofile.html', context)
+
+@login_required
+def doctor_appointments(request):
+    if request.user.role != 'DOCTOR':
+        return redirect('home')
+    doctor = DoctorProfile.objects.get(user=request.user)
+    return render(request, 'accounts/doctor_appointments.html', {'doctor': doctor})
+
+@login_required
+def doctor_patients(request):
+    if request.user.role != 'DOCTOR':
+        return redirect('home')
+    doctor = DoctorProfile.objects.get(user=request.user)
+    return render(request, 'accounts/doctor_patients.html', {'doctor': doctor})
+
+@login_required
+def doctor_prescriptions(request):
+    if request.user.role != 'DOCTOR':
+        return redirect('home')
+    doctor = DoctorProfile.objects.get(user=request.user)
+    return render(request, 'accounts/doctor_prescriptions.html', {'doctor': doctor})
+
+@login_required
+def doctor_records(request):
+    if request.user.role != 'DOCTOR':
+        return redirect('home')
+    doctor = DoctorProfile.objects.get(user=request.user)
+    return render(request, 'accounts/doctor_records.html', {'doctor': doctor})
+
+@login_required
+def doctor_reports(request):
+    if request.user.role != 'DOCTOR':
+        return redirect('home')
+    doctor = DoctorProfile.objects.get(user=request.user)
+    return render(request, 'accounts/doctor_reports.html', {'doctor': doctor})

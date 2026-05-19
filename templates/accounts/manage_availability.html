@@ -1,286 +1,367 @@
-{% extends 'base.html' %}
+{% extends 'accounts/doctor_dashboard.html' %}
 
 {% block title %}Manage Availability | Mediconnect{% endblock %}
 
 {% block extra_css %}
 <style>
-    .availability-container {
+    .schedule-container {
         width: 100%;
         max-width: 1200px;
-        padding: 4rem 2rem;
         margin: 0 auto;
     }
-    .header-section {
-        margin-bottom: 3rem;
+
+    .schedule-header-section {
+        margin-bottom: 40px;
         display: flex;
         justify-content: space-between;
-        align-items: flex-end;
-    }
-    .header-text h1 {
-        text-align: left;
-        margin-bottom: 0.5rem;
-    }
-    .header-text p {
-        color: var(--text-muted);
-        font-size: 1.1rem;
-    }
-    
-    .back-btn {
-        padding: 0.75rem 1.5rem;
-        background: var(--input-bg);
-        border: 1px solid var(--glass-border);
-        border-radius: 12px;
-        color: white;
-        text-decoration: none;
-        font-weight: 600;
-        transition: all 0.2s;
-    }
-    .back-btn:hover {
-        background: var(--glass-border);
+        align-items: flex-start;
     }
 
-    .calendar-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-        gap: 2rem;
+    .schedule-header-text h1 {
+        font-size: 28px;
+        font-weight: 600;
+        letter-spacing: -0.5px;
+        margin-bottom: 4px;
+        color: #000;
     }
-    
-    .day-card {
-        padding: 2.5rem;
+
+    .schedule-header-text p {
+        color: #7b8ba1;
+        font-size: 15px;
+    }
+
+    .schedule-back-btn {
+        padding: 10px 20px;
+        background: white;
+        border: 1px solid #e6ecf5;
+        border-radius: 12px;
+        color: #5b6b7c;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 14px;
+        transition: all 0.2s;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    }
+
+    .schedule-back-btn:hover {
+        background: #f8fafc;
+        color: #1f6fff;
+        border-color: #1f6fff;
+    }
+
+    .schedule-calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 24px;
+    }
+
+    .schedule-day-card {
+        background: white;
+        padding: 25px;
+        border-radius: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
         position: relative;
         overflow: hidden;
         display: flex;
         flex-direction: column;
+        border: 1px solid #edf2f7;
     }
-    
-    .day-card::before {
+
+    .schedule-day-card::before {
         content: '';
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
         height: 4px;
-        background: var(--primary);
-        opacity: 0.5;
+        background: #e6ecf5;
+        transition: background 0.3s;
     }
 
-    .day-card.has-data::before {
-        opacity: 1;
-        background: linear-gradient(to right, var(--primary), var(--accent));
+    .schedule-day-card.has-data::before {
+        background: #1f6fff;
     }
 
-    .day-title {
+    .schedule-day-title {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 1.5rem;
+        margin-bottom: 20px;
     }
-    .day-title h2 {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: white;
+
+    .schedule-day-title h2 {
+        font-size: 18px;
+        font-weight: 600;
+        color: #000;
     }
-    .status-dot {
+
+    .schedule-status-dot {
         width: 10px;
         height: 10px;
         border-radius: 50%;
         background: #ef4444;
-    }
-    .status-dot.active {
-        background: #22c55e;
-        box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+        transition: all 0.3s;
     }
 
-    /* Slots List Styles */
-    .slots-list {
-        margin-bottom: 2rem;
+    .schedule-status-dot.active {
+        background: #16a34a;
+        box-shadow: 0 0 10px rgba(22, 163, 74, 0.2);
+    }
+
+    .schedule-slots-list {
+        margin-bottom: 24px;
         display: flex;
         flex-direction: column;
-        gap: 0.75rem;
+        gap: 12px;
     }
-    .slot-item {
-        background: rgba(255, 255, 255, 0.05);
-        padding: 0.75rem 1rem;
-        border-radius: 10px;
+
+    .schedule-slot-item {
+        background: #f8fafc;
+        padding: 12px 16px;
+        border-radius: 12px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        border: 1px solid var(--glass-border);
+        border: 1px solid #e6ecf5;
         transition: all 0.2s;
     }
-    .slot-item:hover {
-        background: rgba(255, 255, 255, 0.08);
-        border-color: var(--primary);
+
+    .schedule-slot-item:hover {
+        background: #f1f5f9;
+        border-color: #cbd5e1;
     }
-    .slot-info {
+
+    .schedule-slot-info {
         display: flex;
         flex-direction: column;
     }
-    .slot-time {
+
+    .schedule-slot-time {
         font-weight: 600;
-        color: white;
-        font-size: 0.95rem;
+        color: #0f172a;
+        font-size: 14px;
     }
-    .slot-duration {
-        font-size: 0.75rem;
-        color: var(--text-muted);
+
+    .schedule-slot-duration {
+        font-size: 12px;
+        color: #7b8ba1;
+        margin-top: 2px;
     }
-    .slot-actions {
+
+    .schedule-slot-actions {
         display: flex;
-        gap: 0.5rem;
+        gap: 8px;
     }
-    .action-btn {
-        background: none;
-        border: none;
-        color: var(--text-muted);
+
+    .schedule-action-btn {
+        background: white;
+        border: 1px solid #e6ecf5;
+        color: #7b8ba1;
         cursor: pointer;
-        padding: 0.4rem;
-        border-radius: 6px;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
         transition: all 0.2s;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
-    .action-btn:hover {
-        background: rgba(255, 255, 255, 0.1);
+
+    .schedule-action-btn:hover {
+        background: #1f6fff;
         color: white;
+        border-color: #1f6fff;
     }
-    .action-btn.delete:hover {
+
+    .schedule-action-btn.delete:hover {
+        background: #fee2e2;
         color: #ef4444;
+        border-color: #fca5a5;
     }
 
-    .form-divider {
+    .schedule-form-divider {
         height: 1px;
-        background: var(--glass-border);
-        margin: 1.5rem 0;
+        background: #edf2f7;
+        margin: 20px 0;
     }
 
-    .form-header {
-        font-size: 0.9rem;
+    .schedule-form-header {
+        font-size: 14px;
         font-weight: 600;
-        margin-bottom: 1rem;
-        color: var(--primary);
+        margin-bottom: 16px;
+        color: #1f6fff;
         display: flex;
         justify-content: space-between;
         align-items: center;
     }
-    .cancel-edit {
-        font-size: 0.75rem;
-        color: var(--text-muted);
+
+    .schedule-cancel-edit {
+        font-size: 12px;
+        color: #7b8ba1;
         cursor: pointer;
         text-decoration: underline;
         display: none;
     }
 
-    .time-inputs {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1.5rem;
-        margin-bottom: 1.5rem;
+    .schedule-cancel-edit:hover {
+        color: #0f172a;
     }
 
-    .save-btn {
-        margin-top: 0.5rem;
-        font-size: 0.9rem;
-        padding: 0.75rem;
+    .schedule-time-inputs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .schedule-form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .schedule-form-group label {
+        font-size: 13px;
+        font-weight: 500;
+        color: #5b6b7c;
+    }
+
+    .schedule-form-group input {
+        padding: 10px 12px;
+        border: 1px solid #e6ecf5;
+        border-radius: 10px;
+        font-size: 14px;
+        color: #000;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+
+    .schedule-form-group input:focus {
+        border-color: #1f6fff;
+    }
+
+    .schedule-save-btn {
+        margin-top: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        padding: 12px;
         width: 100%;
+        background: #1f6fff;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .schedule-save-btn:hover {
+        background: #185ada;
     }
 
     @media (max-width: 768px) {
-        .header-section {
+        .schedule-header-section {
             flex-direction: column;
-            align-items: flex-start;
-            gap: 1.5rem;
+            gap: 16px;
         }
     }
 </style>
 {% endblock %}
 
-{% block content %}
-<div class="availability-container">
-    <div class="header-section">
-        <div class="header-text">
+{% block doctor_main %}
+<div class="schedule-container">
+    <div class="schedule-header-section">
+        <div class="schedule-header-text">
             <h1>Manage Availability</h1>
             <p>Set your clinical hours for each day of the week.</p>
         </div>
-        <a href="{% url 'doctor_dashboard' %}" class="back-btn">← Dashboard</a>
+        <a href="{% url 'doctor_dashboard' %}" class="schedule-back-btn">← Dashboard</a>
     </div>
 
-    {% if messages %}
-    <div class="messages">
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}">
-            {{ message }}
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
+    {% include 'toasts.html' %}
 
-    <div class="calendar-grid">
+    <div class="schedule-calendar-grid">
         {% for day in days_data %}
-        <div class="glass-card day-card {% if day.has_data %}has-data{% endif %}" id="day-card-{{ day.id }}">
-            <div class="day-title">
+        <div class="schedule-day-card {% if day.has_data %}has-data{% endif %}" id="day-card-{{ day.id }}">
+            <div class="schedule-day-title">
                 <h2>{{ day.name }}</h2>
-                <div class="status-dot {% if day.has_data %}active{% endif %}" title="{% if day.has_data %}Active{% else %}Inactive{% endif %}"></div>
+                <div class="schedule-status-dot {% if day.has_data %}active{% endif %}"
+                    title="{% if day.has_data %}Active{% else %}Inactive{% endif %}"></div>
             </div>
-            
-            <div class="slots-list">
+
+            <div class="schedule-slots-list">
                 {% if day.slots %}
-                    {% for slot in day.slots %}
-                    <div class="slot-item" id="slot-{{ slot.id }}">
-                        <div class="slot-info">
-                            <span class="slot-time">{{ slot.start_time|time:"H:i" }} - {{ slot.end_time|time:"H:i" }}</span>
-                            <span class="slot-duration">{{ slot.slot_duration }} min slots</span>
-                        </div>
-                        <div class="slot-actions">
-                            <button type="button" class="action-btn" onclick="editSlot('{{ day.id }}', '{{ slot.id }}', '{{ slot.start_time|time:'H:i' }}', '{{ slot.end_time|time:'H:i' }}', '{{ slot.slot_duration }}')" title="Edit Slot">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                            </button>
-                            <form method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this slot?')">
-                                {% csrf_token %}
-                                <input type="hidden" name="action" value="delete">
-                                <input type="hidden" name="slot_id" value="{{ slot.id }}">
-                                <button type="submit" class="action-btn delete" title="Delete Slot">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                                </button>
-                            </form>
-                        </div>
+                {% for slot in day.slots %}
+                <div class="schedule-slot-item" id="slot-{{ slot.id }}">
+                    <div class="schedule-slot-info">
+                        <span class="schedule-slot-time">{{ slot.start_time|time:"H:i" }} - {{ slot.end_time|time:"H:i" }}</span>
+                        <span class="schedule-slot-duration">{{ slot.slot_duration }} min slots</span>
                     </div>
-                    {% endfor %}
+                    <div class="schedule-slot-actions">
+                        <button type="button" class="schedule-action-btn"
+                            onclick="editSlot('{{ day.id }}', '{{ slot.id }}', '{{ slot.start_time|time:'H:i' }}', '{{ slot.end_time|time:'H:i' }}', '{{ slot.slot_duration }}')"
+                            title="Edit Slot">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </button>
+                        <form method="POST" style="display:inline;"
+                            onsubmit="return confirm('Are you sure you want to delete this slot?')">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="slot_id" value="{{ slot.id }}">
+                            <button type="submit" class="schedule-action-btn delete" title="Delete Slot">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path
+                                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                                    </path>
+                                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
                 {% else %}
-                    <p style="color: var(--text-muted); font-size: 0.9rem; font-style: italic;">No slots scheduled.</p>
+                <p style="color: #7b8ba1; font-size: 13px; font-style: italic;">No slots scheduled.</p>
                 {% endif %}
             </div>
 
-            <div class="form-divider"></div>
+            <div class="schedule-form-divider"></div>
 
             <form method="POST" id="form-{{ day.id }}">
                 {% csrf_token %}
                 <input type="hidden" name="weekday" value="{{ day.id }}">
                 <input type="hidden" name="slot_id" id="slot-id-{{ day.id }}" value="">
-                
-                <div class="form-header">
+
+                <div class="schedule-form-header">
                     <span id="form-title-{{ day.id }}">Add New Slot</span>
-                    <span class="cancel-edit" id="cancel-{{ day.id }}" onclick="resetForm('{{ day.id }}')">Cancel</span>
+                    <span class="schedule-cancel-edit" id="cancel-{{ day.id }}" onclick="resetForm('{{ day.id }}')">Cancel</span>
                 </div>
 
-                <div class="time-inputs">
-                    <div class="form-group">
+                <div class="schedule-time-inputs">
+                    <div class="schedule-form-group">
                         <label>Start Time</label>
                         <input type="time" name="start_time" id="start-time-{{ day.id }}" value="09:00" required>
                     </div>
-                    <div class="form-group">
+                    <div class="schedule-form-group">
                         <label>End Time</label>
                         <input type="time" name="end_time" id="end-time-{{ day.id }}" value="17:00" required>
                     </div>
                 </div>
-                
-                <div class="form-group">
+
+                <div class="schedule-form-group">
                     <label>Slot Duration (min)</label>
-                    <input type="number" name="slot_duration" id="duration-{{ day.id }}" value="15" min="5" max="120" required>
+                    <input type="number" name="slot_duration" id="duration-{{ day.id }}" value="15" min="5" max="120"
+                        required>
                 </div>
-                
-                <button type="submit" class="btn btn-primary save-btn" id="submit-btn-{{ day.id }}">
+
+                <button type="submit" class="schedule-save-btn" id="submit-btn-{{ day.id }}">
                     Add Slot
                 </button>
             </form>
@@ -307,13 +388,13 @@
         submitBtn.innerText = 'Update Slot';
         formTitle.innerText = 'Edit Slot';
         cancelBtn.style.display = 'inline';
-        
+
         // Scroll to form
         form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        
+
         // Highlight the card
-        document.querySelectorAll('.day-card').forEach(c => c.style.borderColor = 'transparent');
-        document.getElementById('day-card-' + dayId).style.borderColor = 'var(--primary)';
+        document.querySelectorAll('.schedule-day-card').forEach(c => c.style.borderColor = '#edf2f7');
+        document.getElementById('day-card-' + dayId).style.borderColor = '#1f6fff';
     }
 
     function resetForm(dayId) {
@@ -332,8 +413,8 @@
         submitBtn.innerText = 'Add Slot';
         formTitle.innerText = 'Add New Slot';
         cancelBtn.style.display = 'none';
-        
-        document.getElementById('day-card-' + dayId).style.borderColor = 'transparent';
+
+        document.getElementById('day-card-' + dayId).style.borderColor = '#edf2f7';
     }
 </script>
 {% endblock %}

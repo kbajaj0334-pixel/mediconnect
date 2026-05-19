@@ -44,7 +44,7 @@
         }
 
         .logo img {
-            height: 32px;
+            height: 50px;
             object-fit: contain;
         }
 
@@ -207,17 +207,7 @@
         </div>
     </nav>
 
-    {% if messages %}
-    <div class="container" style="padding-bottom: 0;">
-        <div class="messages">
-            {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-                {{ message }}
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
+    {% include 'toasts.html' %}
 
     <main>
         {% block content %}{% endblock %}
@@ -226,7 +216,10 @@
     <footer>
         <div class="footer-content">
             <div class="footer-logo">
-                <h2 class="logo">Mediconnect</h2>
+                <h2 class="logo"><img src="{% static 'images/logo.png' %}" alt="Mediconnect Logo"
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                    <span style="display:none;">Mediconnect</span>
+                </h2>
                 <p style="color: var(--text-muted); line-height: 1.6;">Connecting patients with the best healthcare
                     professionals and hospitals. Your health is our priority, anytime, anywhere.</p>
             </div>
