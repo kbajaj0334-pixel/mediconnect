@@ -6,7 +6,12 @@
         </div>
 
         <div class="profile">
-          <i class="fa-regular fa-bell"></i>
+          <div style="position: relative; display: inline-block;">
+            <i class="fa-regular fa-bell" style="font-size: 20px; color: #7b8ba1; cursor: pointer;"></i>
+            {% if notifications|length > 0 %}
+            <span style="position: absolute; top: -5px; right: -5px; background: #ff4d4d; color: white; width: 16px; height: 16px; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold;">{{ notifications|length }}</span>
+            {% endif %}
+          </div>
           <div class="profile-box">
             <img
               src="{% if doctor.doctor_pic %}{{ doctor.doctor_pic.url }}{% else %}https://ui-avatars.com/api/?name={{ doctor.user.get_full_name|default:doctor.user.username|urlencode }}&background=f3f4f6&color=111827{% endif %}"
@@ -65,6 +70,32 @@
             <span>Served to date</span>
           </div>
         </div>
+      </div>
+      
+      <!-- Notifications -->
+      <div class="table-section" style="margin-bottom: 40px;">
+        <div class="table-header">
+          <h2>Notifications {% if notifications %}<span style="background: #ff4d4d; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; vertical-align: middle;">{{ notifications|length }}</span>{% endif %}</h2>
+        </div>
+        <ul style="list-style: none; padding: 0;">
+          {% for notif in notifications %}
+          <li style="padding: 16px; border-bottom: 1px solid #edf2f7; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <p style="margin-bottom: 4px; font-weight: 500; color: #1f2937;">{{ notif.message }}</p>
+              <small style="color: #7b8ba1;"><i class="fa-regular fa-clock"></i> {{ notif.created_at|timesince }} ago</small>
+            </div>
+            <form method="POST">
+              {% csrf_token %}
+              <input type="hidden" name="notification_id" value="{{ notif.id }}">
+              <button type="submit" style="background: none; border: 1px solid #1f6fff; color: #1f6fff; padding: 6px 12px; border-radius: 6px; cursor: pointer; transition: 0.2s; font-size: 13px; font-weight: 500;" onmouseover="this.style.background='#1f6fff'; this.style.color='white';" onmouseout="this.style.background='none'; this.style.color='#1f6fff';">Mark as Read</button>
+            </form>
+          </li>
+          {% empty %}
+          <li style="padding: 20px; text-align: center; color: #7b8ba1;">
+            No new notifications.
+          </li>
+          {% endfor %}
+        </ul>
       </div>
 
       <!-- Appointment Table -->

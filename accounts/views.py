@@ -88,6 +88,19 @@ def doctor_dashboard(request):
         return redirect('home')
     
     doctor = DoctorProfile.objects.get(user=request.user)
+    from core.models import Notification
+    
+    if request.method == 'POST':
+        notif_id = request.POST.get('notification_id')
+        if notif_id:
+            try:
+                notif = Notification.objects.get(id=notif_id, user=request.user)
+                notif.is_read = True
+                notif.save()
+                messages.success(request, 'Notification marked as read.')
+            except Notification.DoesNotExist:
+                pass
+        return redirect('doctor_dashboard')
     
     from booking.models import Appointment
     from datetime import date
@@ -96,11 +109,14 @@ def doctor_dashboard(request):
     today_appointments = Appointment.objects.filter(doctor=doctor, appointment_date=today).order_by('start_time')
     total_patients = Appointment.objects.filter(doctor=doctor).values('patient').distinct().count()
     
+    notifications = Notification.objects.filter(user=request.user, is_read=False).order_by('-created_at')
+    
     # Context
     context = {
         'doctor': doctor,
         'today_appointments': today_appointments,
         'total_patients': total_patients,
+        'notifications': notifications,
     }
     
     return render(request, 'accounts/doctor_dashboard.html', context)
@@ -249,6 +265,9 @@ def update_profile_view(request):
         'hospitals': hospitals,
         'role': user.role
     }
+    
+    if user.role == 'DOCTOR':
+        return render(request, 'accounts/doctor_profile.html', context)
     return render(request, 'accounts/updateprofile.html', context)
 
 @login_required
@@ -256,28 +275,83 @@ def doctor_appointments(request):
     if request.user.role != 'DOCTOR':
         return redirect('home')
     doctor = DoctorProfile.objects.get(user=request.user)
-    return render(request, 'accounts/doctor_appointments.html', {'doctor': doctor})
+    from booking.models import Appointment
+    
+    if request.method == 'POST':
+        appt_id = request.POST.get('appointment_id')
+        new_status = request.POST.get('status')
+        if appt_id and new_status in dict(Appointment.STATUS_CHOICES):
+            try:
+                appt = Appointment.objects.get(id=appt_id, doctor=doctor)
+                appt.status = new_status
+                appt.save()
+                messages.success(request, f'Appointment status updated to {new_status}')
+            except Appointment.DoesNotExist:
+                messages.error(request, 'Appointment not found.')
+        return redirect('doctor_appointments')
+
+    appointments = Appointment.objects.filter(doctor=doctor).order_by('-appointment_date', '-start_time')
+    return render(request, 'accounts/doctor_appointments.html', {'doctor': doctor, 'appointments': appointments})
 
 @login_required
 def doctor_patients(request):
     if request.user.role != 'DOCTOR':
         return redirect('home')
     doctor = DoctorProfile.objects.get(user=request.user)
-    return render(request, 'accounts/doctor_patients.html', {'doctor': doctor})
+    from booking.models import Appointment
+    from accounts.models import PatientProfile
+    
+    patient_ids = Appointment.objects.filter(doctor=doctor, status='COMPLETED').values_list('patient', flat=True).distinct()
+    patients = PatientProfile.objects.filter(id__in=patient_ids)
+    
+    return render(request, 'accounts/doctor_patients.html', {'doctor': doctor, 'patients': patients})
 
 @login_required
 def doctor_prescriptions(request):
     if request.user.role != 'DOCTOR':
         return redirect('home')
     doctor = DoctorProfile.objects.get(user=request.user)
-    return render(request, 'accounts/doctor_prescriptions.html', {'doctor': doctor})
+    from booking.models import MedicalRecord, Appointment
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'create' or action == 'update':
+            appt_id = request.POST.get('appointment_id')
+            prescription = request.POST.get('prescription')
+            diagnosis = request.POST.get('diagnosis')
+            try:
+                appt = Appointment.objects.get(id=appt_id, doctor=doctor)
+                record, created = MedicalRecord.objects.get_or_create(appointment=appt)
+                record.prescription = prescription
+                record.diagnosis = diagnosis
+                record.save()
+                messages.success(request, 'Prescription saved successfully.')
+            except Appointment.DoesNotExist:
+                messages.error(request, 'Invalid appointment.')
+        elif action == 'delete':
+            record_id = request.POST.get('record_id')
+            try:
+                record = MedicalRecord.objects.get(id=record_id, appointment__doctor=doctor)
+                record.prescription = '' # Or delete the record completely if you want: record.delete()
+                record.save()
+                messages.success(request, 'Prescription deleted.')
+            except MedicalRecord.DoesNotExist:
+                messages.error(request, 'Record not found.')
+        return redirect('doctor_prescriptions')
+
+    records = MedicalRecord.objects.filter(appointment__doctor=doctor).exclude(prescription='').order_by('-created_at')
+    # Also fetch completed appointments without prescriptions to allow creating new ones
+    appointments = Appointment.objects.filter(doctor=doctor, status='COMPLETED', medicalrecord__isnull=True)
+    return render(request, 'accounts/doctor_prescriptions.html', {'doctor': doctor, 'records': records, 'appointments': appointments})
 
 @login_required
 def doctor_records(request):
     if request.user.role != 'DOCTOR':
         return redirect('home')
     doctor = DoctorProfile.objects.get(user=request.user)
-    return render(request, 'accounts/doctor_records.html', {'doctor': doctor})
+    from booking.models import MedicalRecord
+    records = MedicalRecord.objects.filter(appointment__doctor=doctor).order_by('-created_at')
+    return render(request, 'accounts/doctor_records.html', {'doctor': doctor, 'records': records})
 
 @login_required
 def doctor_reports(request):

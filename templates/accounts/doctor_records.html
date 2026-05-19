@@ -1,10 +1,48 @@
 {% extends 'accounts/doctor_dashboard.html' %}
-
 {% block title %}Patient Records | Mediconnect{% endblock %}
-
 {% block doctor_main %}
-<div class="availability-container" style="padding: 2rem;">
-    <h2>Patient Records</h2>
-    <p style="color: var(--text-muted); margin-top: 1rem;">Access historical patient records and test results.</p>
+<div class="topbar">
+  <div>
+    <h1>Patient Records</h1>
+    <p>View complete medical records of your patients</p>
+  </div>
+</div>
+<div class="table-section">
+  <div class="table-header">
+    <h2>Medical Records</h2>
+  </div>
+  <table style="width: 100%; border-collapse: collapse; text-align: left;">
+    <thead>
+      <tr>
+        <th style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #5b6b7c; font-weight: 500;">Patient</th>
+        <th style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #5b6b7c; font-weight: 500;">Appointment Date</th>
+        <th style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #5b6b7c; font-weight: 500;">Diagnosis</th>
+        <th style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #5b6b7c; font-weight: 500;">File</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for record in records %}
+      <tr>
+        <td style="padding: 16px; border-bottom: 1px solid #edf2f7;">
+          <div style="font-weight: 500; color: #000;">{{ record.appointment.patient.user.username }}</div>
+        </td>
+        <td style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #000;">{{ record.appointment.appointment_date }}</td>
+        <td style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #5b6b7c;">{{ record.diagnosis|default:"-" }}</td>
+        <td style="padding: 16px; border-bottom: 1px solid #edf2f7;">
+          {% if record.file %}
+          <a href="{{ record.file.url }}" target="_blank" style="color: #1f6fff; text-decoration: none; font-weight: 500;">View File</a>
+          {% else %}
+          <span style="color: #7b8ba1;">-</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="4" style="padding: 20px; text-align: center; color: #7b8ba1;">No medical records found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 {% endblock %}
+ 

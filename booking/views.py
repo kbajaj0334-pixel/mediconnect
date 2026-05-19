@@ -107,6 +107,9 @@ def book_appointment(request, doctor_id):
             severity_data = calculate_severity(pain_level, symptoms, patient)
             appointment.severity_score = severity_data['score']
             appointment.severity_level = severity_data['severity_level']
+            
+            if appointment.severity_level == 'CRITICAL' or appointment.severity_level == 'MEDIUM':
+                appointment.status = 'APPROVED'
         else:
             appointment.severity_score = 0
             appointment.severity_level = 'LOW'
@@ -114,7 +117,36 @@ def book_appointment(request, doctor_id):
         try:
             appointment.full_clean()
             appointment.save()
-            messages.success(request, 'Appointment booked successfully!')
+            
+            if appointment.severity_level == 'CRITICAL':
+                from core.models import Notification
+                from django.core.mail import send_mail
+                from django.conf import settings
+                
+                Notification.objects.create(
+                    user=doctor.user,
+                    message=f"CRITICAL EMERGENCY: Patient {patient.user.username} booked an appointment on {appointment.appointment_date} at {appointment.start_time}."
+                )
+                send_mail(
+                    subject='CRITICAL EMERGENCY APPOINTMENT',
+                    message=f"CRITICAL EMERGENCY: Patient {patient.user.username} booked an appointment on {appointment.appointment_date} at {appointment.start_time}.\nSymptoms: {appointment.symptoms}",
+                    from_email=settings.EMAIL_HOST_USER if hasattr(settings, 'EMAIL_HOST_USER') else None,
+                    recipient_list=[doctor.user.email],
+                    fail_silently=True,
+                )
+                messages.error(request, 'CRITICAL emergency recorded. Appointment auto-approved and doctor notified immediately.')
+            elif appointment.severity_level == 'HIGH':
+                from core.models import Notification
+                Notification.objects.create(
+                    user=doctor.user,
+                    message=f"HIGH PRIORITY: Patient {patient.user.username} booked an appointment on {appointment.appointment_date} at {appointment.start_time}."
+                )
+                messages.warning(request, 'High severity recorded. Doctor has been notified.')
+            elif appointment.severity_level == 'MEDIUM':
+                messages.info(request, 'Medium severity recorded. Appointment automatically approved.')
+            else:
+                messages.success(request, 'Appointment booked successfully!')
+
             return redirect('home')
         except Exception as e:
             messages.error(request, f'Error booking appointment: {e}')

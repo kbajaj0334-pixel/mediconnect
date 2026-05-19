@@ -199,63 +199,6 @@
                         <label>Allergies</label>
                         <textarea name="allergies" class="form-input" placeholder="List any known allergies...">{{ profile.allergies }}</textarea>
                     </div>
-
-                {% elif role == 'DOCTOR' %}
-                    <!-- Doctor Fields -->
-                    <div class="form-group full-width" style="text-align: center;">
-                        <label>Profile Picture</label>
-                        {% if profile.doctor_pic %}
-                            <img src="{{ profile.doctor_pic.url }}" class="pic-preview" alt="Profile Pic">
-                        {% else %}
-                            <div class="pic-preview" style="display: inline-flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1);">
-                                <span style="font-size: 2rem;">👨‍⚕️</span>
-                            </div>
-                        {% endif %}
-                        <input type="file" name="doctor_pic" class="form-input">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Hospital</label>
-                        <select name="hospital" class="form-input" required>
-                            {% for hospital in hospitals %}
-                                <option value="{{ hospital.id }}" {% if profile.hospital.id == hospital.id %}selected{% endif %}>
-                                    {{ hospital.name }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Specialization</label>
-                        <input type="text" name="specialization" class="form-input" value="{{ profile.specialization }}" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Years of Experience</label>
-                        <input type="number" name="experience_years" class="form-input" value="{{ profile.experience_years }}" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Online Fee (₹)</label>
-                        <input type="number" name="fees_online" class="form-input" value="{{ profile.fees_online }}" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Offline Fee (₹)</label>
-                        <input type="number" name="fees_offline" class="form-input" value="{{ profile.fees_offline }}" required>
-                    </div>
-
-                    <div class="form-group">
-                        <div class="checkbox-group">
-                            <input type="checkbox" name="is_available" id="is_available" {% if profile.is_available %}checked{% endif %}>
-                            <label for="is_available" style="margin-bottom: 0;">Available for Appointments</label>
-                        </div>
-                    </div>
-
-                    <div class="form-group full-width">
-                        <label>Professional Bio</label>
-                        <textarea name="bio" class="form-input" placeholder="Tell us about your background and expertise...">{{ profile.bio }}</textarea>
-                    </div>
                 {% endif %}
             </div>
 

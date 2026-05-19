@@ -1,10 +1,44 @@
 {% extends 'accounts/doctor_dashboard.html' %}
-
-{% block title %}Patients | Mediconnect{% endblock %}
-
+{% block title %}My Patients | Mediconnect{% endblock %}
 {% block doctor_main %}
-<div class="availability-container" style="padding: 2rem;">
-    <h2>My Patients</h2>
-    <p style="color: var(--text-muted); margin-top: 1rem;">This section will display the list of patients you have treated.</p>
+<div class="topbar">
+  <div>
+    <h1>My Patients</h1>
+    <p>Patients you have treated</p>
+  </div>
+</div>
+<div class="table-section">
+  <div class="table-header">
+    <h2>Patients List</h2>
+  </div>
+  <table style="width: 100%; border-collapse: collapse; text-align: left;">
+    <thead>
+      <tr>
+        <th style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #5b6b7c; font-weight: 500;">Name</th>
+        <th style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #5b6b7c; font-weight: 500;">Contact</th>
+        <th style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #5b6b7c; font-weight: 500;">Blood Group</th>
+        <th style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #5b6b7c; font-weight: 500;">Medical History</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for patient in patients %}
+      <tr>
+        <td style="padding: 16px; border-bottom: 1px solid #edf2f7;">
+          <div style="font-weight: 500; color: #000;">{{ patient.user.username }}</div>
+        </td>
+        <td style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #000;">
+          {{ patient.user.email }}<br>
+          <small style="color: #7b8ba1;">{{ patient.user.phone }}</small>
+        </td>
+        <td style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #5b6b7c;">{{ patient.blood_group|default:"-" }}</td>
+        <td style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #5b6b7c;">{{ patient.medical_history|truncatechars:50|default:"-" }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="4" style="padding: 20px; text-align: center; color: #7b8ba1;">No patients found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 {% endblock %}

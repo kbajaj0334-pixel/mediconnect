@@ -97,16 +97,57 @@
         font-weight: 700;
         cursor: pointer;
     }
-    .symptoms-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 1rem;
-        margin-top: 1rem;
-    }
-    .symptom-checkbox {
+    .symptoms-tag-container {
         display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+        min-height: 48px;
+        padding: 0.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px dashed rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        align-items: center;
+    }
+    .symptom-tag {
+        background: var(--primary);
+        color: white;
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        display: inline-flex;
         align-items: center;
         gap: 0.5rem;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    .symptom-tag .remove-btn {
+        cursor: pointer;
+        font-weight: bold;
+        opacity: 0.7;
+    }
+    .symptom-tag .remove-btn:hover {
+        opacity: 1;
+    }
+    .symptom-suggestion-tag {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        display: inline-block;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+    }
+    .symptom-suggestion-tag:hover {
+        background: var(--primary);
+        border-color: rgba(255,255,255,0.2);
+    }
+    .symptoms-suggestions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
     }
 </style>
 {% endblock %}
@@ -157,18 +198,19 @@
 
             <div id="emergency_details" class="emergency-section">
                 <h4 style="color: #ef4444; margin-bottom: 1rem;">Emergency Details</h4>
-                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">If you choose emergency booking, you don't need to manually pick a time slot. We will auto-assign the earliest available slot on the selected date.</p>
+                <!-- <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">If you choose emergency booking, you don't need to manually pick a time slot. We will auto-assign the earliest available slot on the selected date.</p> -->
                 
                 <div class="form-group">
                     <label style="color: #fca5a5;">Select Symptoms</label>
-                    <div class="symptoms-grid">
-                        <label class="symptom-checkbox"><input type="checkbox" name="symptoms" value="chest_pain"> Chest Pain</label>
-                        <label class="symptom-checkbox"><input type="checkbox" name="symptoms" value="breathing_difficulty"> Breathing Difficulty</label>
-                        <label class="symptom-checkbox"><input type="checkbox" name="symptoms" value="high_fever"> High Fever</label>
-                        <label class="symptom-checkbox"><input type="checkbox" name="symptoms" value="vomiting"> Vomiting</label>
-                        <label class="symptom-checkbox"><input type="checkbox" name="symptoms" value="dizziness"> Dizziness</label>
-                        <label class="symptom-checkbox"><input type="checkbox" name="symptoms" value="fatigue"> Fatigue</label>
+                    <div id="selected_symptoms_container" class="symptoms-tag-container"></div>
+                    <div class="symptom-search-wrapper">
+                        <input type="text" id="symptom_search" class="form-control" placeholder="Search symptoms (e.g. Vomiting) or type to add new...">
                     </div>
+                    <div style="margin-top: 0.75rem;">
+                        <span style="font-size: 0.85rem; color: var(--text-muted);">Suggestions:</span>
+                        <div id="symptoms_suggestions" class="symptoms-suggestions"></div>
+                    </div>
+                    <div id="hidden_symptoms_inputs"></div>
                 </div>
 
                 <div class="form-group" style="margin-top: 1.5rem;">
@@ -208,22 +250,42 @@
                 .then(data => {
                     if(data.slots && data.slots.length > 0) {
                         slotsContainer.innerHTML = '';
-                        data.slots.forEach(slot => {
-                            const btn = document.createElement('div');
-                            btn.className = 'slot-btn';
-                            btn.textContent = slot.start_time;
-                            btn.dataset.start = slot.start_time;
-                            btn.dataset.end = slot.end_time;
-                            
-                            btn.addEventListener('click', function() {
-                                document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
-                                this.classList.add('selected');
-                                startTimeInput.value = this.dataset.start;
-                                endTimeInput.value = this.dataset.end;
+                        
+                        // Filter out gone slots if selectedDate is today
+                        const now = new Date();
+                        const isToday = selectedDate === now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+                        let filteredSlots = data.slots;
+                        if (isToday) {
+                            const currentHour = now.getHours();
+                            const currentMinute = now.getMinutes();
+                            filteredSlots = data.slots.filter(slot => {
+                                const [shour, sminute] = slot.start_time.split(':').map(Number);
+                                if (shour > currentHour) return true;
+                                if (shour === currentHour && sminute > currentMinute) return true;
+                                return false;
                             });
-                            
-                            slotsContainer.appendChild(btn);
-                        });
+                        }
+
+                        if(filteredSlots.length > 0) {
+                            filteredSlots.forEach(slot => {
+                                const btn = document.createElement('div');
+                                btn.className = 'slot-btn';
+                                btn.textContent = slot.start_time;
+                                btn.dataset.start = slot.start_time;
+                                btn.dataset.end = slot.end_time;
+                                
+                                btn.addEventListener('click', function() {
+                                    document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+                                    this.classList.add('selected');
+                                    startTimeInput.value = this.dataset.start;
+                                    endTimeInput.value = this.dataset.end;
+                                });
+                                
+                                slotsContainer.appendChild(btn);
+                            });
+                        } else {
+                            slotsContainer.innerHTML = '<p style="color: #ef4444; grid-column: 1/-1;">No available slots left for today.</p>';
+                        }
                     } else {
                         slotsContainer.innerHTML = '<p style="color: #ef4444; grid-column: 1/-1;">No available slots for this date.</p>';
                     }
@@ -250,6 +312,115 @@
                 endTimeInput.required = true;
             }
         });
+
+        // Symptoms tagging JS
+        const storedSymptoms = [
+            "Chest Pain", "Breathing Difficulty", "High Fever", "Vomiting", 
+            "Dizziness", "Fatigue", "Cough", "Headache", "Nausea", "Sore Throat",
+            "Abdominal Pain", "Diarrhea", "Muscle Pain", "Joint Pain", "Skin Rash"
+        ];
+        
+        const selectedSymptoms = new Set();
+        const selectedContainer = document.getElementById('selected_symptoms_container');
+        const searchInput = document.getElementById('symptom_search');
+        const suggestionsContainer = document.getElementById('symptoms_suggestions');
+        const hiddenInputsContainer = document.getElementById('hidden_symptoms_inputs');
+
+        function renderSelected() {
+            selectedContainer.innerHTML = '';
+            hiddenInputsContainer.innerHTML = '';
+            
+            if (selectedSymptoms.size === 0) {
+                selectedContainer.innerHTML = '<span style="color: rgba(255,255,255,0.4); font-size: 0.85rem; padding: 0.25rem 0.5rem;">No symptoms selected. Search or click suggestions below.</span>';
+                return;
+            }
+
+            selectedSymptoms.forEach(symptom => {
+                const tag = document.createElement('span');
+                tag.className = 'symptom-tag';
+                tag.innerHTML = `${symptom} <span class="remove-btn" data-val="${symptom}">&times;</span>`;
+                selectedContainer.appendChild(tag);
+
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'symptoms';
+                hiddenInput.value = symptom.toLowerCase().replace(/\s+/g, '_');
+                hiddenInputsContainer.appendChild(hiddenInput);
+            });
+
+            selectedContainer.querySelectorAll('.remove-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const val = this.dataset.val;
+                    selectedSymptoms.delete(val);
+                    renderSelected();
+                    renderSuggestions();
+                });
+            });
+        }
+
+        function renderSuggestions() {
+            suggestionsContainer.innerHTML = '';
+            const query = searchInput.value.trim().toLowerCase();
+
+            let matches = [];
+            if (query) {
+                matches = storedSymptoms.filter(s => 
+                    s.toLowerCase().includes(query) && !selectedSymptoms.has(s)
+                );
+                
+                const hasExactMatch = storedSymptoms.some(s => s.toLowerCase() === query);
+                if (!hasExactMatch && query.length > 0) {
+                    const capitalizedQuery = searchInput.value.trim();
+                    if (!selectedSymptoms.has(capitalizedQuery)) {
+                        const newTagBtn = document.createElement('div');
+                        newTagBtn.className = 'symptom-suggestion-tag';
+                        newTagBtn.style.border = '1px dashed var(--primary)';
+                        newTagBtn.textContent = `Add "${capitalizedQuery}"`;
+                        newTagBtn.dataset.val = capitalizedQuery;
+                        suggestionsContainer.appendChild(newTagBtn);
+                    }
+                }
+            } else {
+                const defaultSuggestions = ["Chest Pain", "Breathing Difficulty", "High Fever", "Vomiting"];
+                matches = defaultSuggestions.filter(s => !selectedSymptoms.has(s));
+            }
+
+            matches.forEach(s => {
+                const tagBtn = document.createElement('div');
+                tagBtn.className = 'symptom-suggestion-tag';
+                tagBtn.textContent = s;
+                tagBtn.dataset.val = s;
+                suggestionsContainer.appendChild(tagBtn);
+            });
+
+            suggestionsContainer.querySelectorAll('.symptom-suggestion-tag').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const val = this.dataset.val;
+                    selectedSymptoms.add(val);
+                    searchInput.value = '';
+                    renderSelected();
+                    renderSuggestions();
+                });
+            });
+        }
+
+        searchInput.addEventListener('input', renderSuggestions);
+        
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const query = this.value.trim();
+                if (query) {
+                    selectedSymptoms.add(query);
+                    this.value = '';
+                    renderSelected();
+                    renderSuggestions();
+                }
+            }
+        });
+
+        renderSelected();
+        renderSuggestions();
     });
 </script>
 {% endblock %}

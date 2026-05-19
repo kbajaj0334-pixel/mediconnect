@@ -1,10 +1,77 @@
 {% extends 'accounts/doctor_dashboard.html' %}
-
-{% block title %}Prescriptions | Mediconnect{% endblock %}
-
+{% block title %}Manage Prescriptions | Mediconnect{% endblock %}
 {% block doctor_main %}
-<div class="availability-container" style="padding: 2rem;">
-    <h2>Prescriptions</h2>
-    <p style="color: var(--text-muted); margin-top: 1rem;">Manage and issue prescriptions here.</p>
+<div class="topbar">
+  <div>
+    <h1>Prescriptions</h1>
+    <p>Manage patient prescriptions and diagnoses</p>
+  </div>
+</div>
+
+<div class="table-section" style="margin-bottom: 30px;">
+  <div class="table-header">
+    <h2>Write New Prescription</h2>
+  </div>
+  <form method="POST" style="background: #f9fafb; padding: 20px; border-radius: 12px; border: 1px solid #e5e7eb;">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="create">
+    <div style="margin-bottom: 15px;">
+      <label style="display: block; margin-bottom: 5px; font-weight: 500;">Select Completed Appointment</label>
+      <select name="appointment_id" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #d1d5db; font-family: inherit;">
+        <option value="">-- Select Appointment --</option>
+        {% for appt in appointments %}
+        <option value="{{ appt.id }}">{{ appt.patient.user.username }} - {{ appt.appointment_date }} ({{ appt.symptoms|truncatechars:20 }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div style="margin-bottom: 15px;">
+      <label style="display: block; margin-bottom: 5px; font-weight: 500;">Diagnosis</label>
+      <input type="text" name="diagnosis" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #d1d5db; font-family: inherit;">
+    </div>
+    <div style="margin-bottom: 15px;">
+      <label style="display: block; margin-bottom: 5px; font-weight: 500;">Prescription</label>
+      <textarea name="prescription" required rows="3" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #d1d5db; resize: vertical; font-family: inherit;"></textarea>
+    </div>
+    <button type="submit" style="background: #1f6fff; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 500; cursor: pointer;">Save Prescription</button>
+  </form>
+</div>
+
+<div class="table-section">
+  <div class="table-header">
+    <h2>Issued Prescriptions</h2>
+  </div>
+  <table style="width: 100%; border-collapse: collapse; text-align: left;">
+    <thead>
+      <tr>
+        <th style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #5b6b7c; font-weight: 500;">Patient</th>
+        <th style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #5b6b7c; font-weight: 500;">Date</th>
+        <th style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #5b6b7c; font-weight: 500;">Diagnosis</th>
+        <th style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #5b6b7c; font-weight: 500;">Prescription</th>
+        <th style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #5b6b7c; font-weight: 500;">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for record in records %}
+      <tr>
+        <td style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #000; font-weight: 500;">{{ record.appointment.patient.user.username }}</td>
+        <td style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #000;">{{ record.created_at|date:"M d, Y" }}</td>
+        <td style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #5b6b7c;">{{ record.diagnosis }}</td>
+        <td style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #5b6b7c;">{{ record.prescription }}</td>
+        <td style="padding: 16px; border-bottom: 1px solid #edf2f7;">
+          <form method="POST" onsubmit="return confirm('Delete this prescription?');">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="record_id" value="{{ record.id }}">
+            <button type="submit" style="color: #ff4d4d; background: none; border: none; cursor: pointer; text-decoration: underline; font-family: inherit;">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="5" style="padding: 20px; text-align: center; color: #7b8ba1;">No prescriptions found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 {% endblock %}

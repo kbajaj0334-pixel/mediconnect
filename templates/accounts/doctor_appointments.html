@@ -1,10 +1,59 @@
 {% extends 'accounts/doctor_dashboard.html' %}
-
-{% block title %}Appointments | Mediconnect{% endblock %}
-
+{% block title %}Manage Appointments | Mediconnect{% endblock %}
 {% block doctor_main %}
-<div class="availability-container" style="padding: 2rem;">
-    <h2>Appointments</h2>
-    <p style="color: var(--text-muted); margin-top: 1rem;">This section will display all upcoming and past appointments.</p>
+<div class="topbar">
+  <div>
+    <h1>Appointments</h1>
+    <p>Manage your upcoming and past appointments</p>
+  </div>
+</div>
+<div class="table-section">
+  <div class="table-header">
+    <h2>All Appointments</h2>
+  </div>
+  <table style="width: 100%; border-collapse: collapse; text-align: left;">
+    <thead>
+      <tr>
+        <th style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #5b6b7c; font-weight: 500;">Patient</th>
+        <th style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #5b6b7c; font-weight: 500;">Date & Time</th>
+        <th style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #5b6b7c; font-weight: 500;">Symptoms</th>
+        <th style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #5b6b7c; font-weight: 500;">Status</th>
+        <th style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #5b6b7c; font-weight: 500;">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for appt in appointments %}
+      <tr>
+        <td style="padding: 16px; border-bottom: 1px solid #edf2f7;">
+          <div style="font-weight: 500; color: #000;">{{ appt.patient.user.username }}</div>
+        </td>
+        <td style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #000;">
+          {{ appt.appointment_date }} <br>
+          <small style="color: #7b8ba1;">{{ appt.start_time }} - {{ appt.end_time }}</small>
+        </td>
+        <td style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #5b6b7c; max-width: 17%; overflow: hidden; text-overflow: ellipsis; word-wrap: break-word;">{{ appt.symptoms }}</td>
+        <td style="padding: 16px; border-bottom: 1px solid #edf2f7;">
+          <span class="status {{ appt.status }}">{{ appt.status }}</span>
+        </td>
+        <td style="padding: 16px; border-bottom: 1px solid #edf2f7;">
+          <form method="POST" style="display:inline-flex; gap: 8px;">
+            {% csrf_token %}
+            <input type="hidden" name="appointment_id" value="{{ appt.id }}">
+            <select name="status" onchange="this.form.submit()" style="padding: 6px; border-radius: 6px; border: 1px solid #ccc; font-family: inherit; font-size: 13px;">
+              <option value="PENDING" {% if appt.status == 'PENDING' %}selected{% endif %}>Pending</option>
+              <option value="APPROVED" {% if appt.status == 'APPROVED' %}selected{% endif %}>Approve</option>
+              <option value="COMPLETED" {% if appt.status == 'COMPLETED' %}selected{% endif %}>Complete</option>
+              <option value="CANCELLED" {% if appt.status == 'CANCELLED' %}selected{% endif %}>Cancel</option>
+            </select>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="5" style="padding: 20px; text-align: center; color: #7b8ba1;">No appointments found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 {% endblock %}

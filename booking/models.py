@@ -103,3 +103,6 @@ class MedicalRecord(models.Model):
     file = models.FileField(upload_to='records/', blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str___(self):
+        return f"{self.appointment.patient} -> {self.appointment.doctor}"
