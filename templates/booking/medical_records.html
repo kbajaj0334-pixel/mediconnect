@@ -1,85 +1,490 @@
 {% extends 'base.html' %}
 
-{% block title %}Medical Records | Mediconnect{% endblock %}
+{% block title %}Medical Records & History | Mediconnect{% endblock %}
 
 {% block extra_css %}
 <style>
     .records-container {
-        padding: 4rem 2rem;
-        max-width: 1000px;
+        padding: 3rem 2rem;
+        max-width: 1100px;
         margin: 0 auto;
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: 2.5rem;
     }
-    .record-item {
+
+    @media (max-width: 900px) {
+        .records-container {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Medical Profile Sidebar Card */
+    .profile-sidebar {
+        position: sticky;
+        top: 100px;
+        height: fit-content;
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
         padding: 2rem;
-        margin-bottom: 1.5rem;
-        border-left: 4px solid var(--primary);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
     }
-    .record-header {
+
+    .profile-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: #f3f4f6;
+        color: #6b7280;
         display: flex;
-        justify-content: space-between;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        margin: 0 auto 1rem;
+        border: 2px solid #e5e7eb;
+        overflow: hidden;
+    }
+
+    .profile-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .profile-name {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 0.25rem;
+    }
+
+    .profile-role {
+        font-size: 0.85rem;
+        color: #9ca3af;
+        text-transform: uppercase;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    .info-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+
+    .info-item {
+        border-bottom: 1px solid #f3f4f6;
+        padding-bottom: 0.75rem;
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .info-label {
+        font-size: 0.75rem;
+        color: #9ca3af;
+        text-transform: uppercase;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+        display: block;
+    }
+
+    .info-value {
+        font-size: 0.95rem;
+        color: #1f2937;
+        font-weight: 500;
+    }
+
+    /* Main Timeline Area */
+    .history-main {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .history-header {
         margin-bottom: 1rem;
     }
-    .record-body {
-        background: rgba(0, 0, 0, 0.2);
-        padding: 1.5rem;
-        border-radius: 12px;
+
+    .history-header h2 {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #111827;
+        letter-spacing: -0.5px;
+        margin-bottom: 0.5rem;
+    }
+
+    .history-header p {
+        color: #6b7280;
+        font-size: 1rem;
+    }
+
+    .timeline-card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 1.75rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+        transition: all 0.25s ease;
+        position: relative;
+    }
+
+    .timeline-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+    }
+
+    .card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+        gap: 1rem;
+    }
+
+    .doc-info h3 {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 0.25rem;
+    }
+
+    .doc-spec {
+        font-size: 0.85rem;
+        color: #6b7280;
+        font-weight: 500;
+    }
+
+    .appt-date {
+        font-size: 0.85rem;
+        color: #9ca3af;
+        margin-top: 0.25rem;
+    }
+
+    .symptoms-box {
+        font-size: 0.95rem;
+        color: #4b5563;
+        background: #f9fafb;
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 1.25rem;
+        border-left: 3px solid #d1d5db;
+    }
+
+    .card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid #f3f4f6;
+        padding-top: 1rem;
+        gap: 1rem;
+    }
+
+    .badge-status {
+        padding: 6px 12px;
+        border-radius: 30px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        display: inline-block;
+    }
+
+    .status-PENDING { background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; }
+    .status-APPROVED { background: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; }
+    .status-COMPLETED { background: #ecfdf5; color: #16a34a; border: 1px solid #d1fae5; }
+    .status-CANCELLED { background: #fef2f2; color: #dc2626; border: 1px solid #fee2e2; }
+
+    .btn-action {
+        background: #1f6fff;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: opacity 0.2s;
+    }
+
+    .btn-action:hover {
+        opacity: 0.9;
+    }
+
+    .placeholder-text {
+        font-size: 0.85rem;
+        color: #9ca3af;
+        font-style: italic;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* Modal Styling */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(4px);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 20px;
+        width: 600px;
+        max-width: 90%;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        padding: 2.5rem;
+        position: relative;
+        animation: modalFadeIn 0.3s ease;
+    }
+
+    @keyframes modalFadeIn {
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .modal-close {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: none;
+        border: none;
+        font-size: 24px;
+        color: #9ca3af;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+
+    .modal-close:hover {
+        color: #111827;
+    }
+
+    .modal-title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #111827;
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.5px;
+    }
+
+    .modal-subtitle {
+        color: #6b7280;
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #f3f4f6;
+        padding-bottom: 1rem;
+    }
+
+    .modal-section {
         margin-bottom: 1.5rem;
     }
-    .record-label {
-        color: var(--primary);
-        font-weight: 600;
-        font-size: 0.85rem;
+
+    .modal-label {
+        font-size: 0.8rem;
         text-transform: uppercase;
+        font-weight: 600;
+        color: #1f6fff;
         margin-bottom: 0.5rem;
         display: block;
+        letter-spacing: 0.5px;
+    }
+
+    .modal-box {
+        background: #f9fafb;
+        padding: 1.25rem;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        color: #374151;
+        line-height: 1.6;
+        border: 1px solid #f3f4f6;
+        white-space: pre-line;
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="records-container">
-    <div class="section-header">
-        <div class="section-title">
-            <h2>Your Medical History</h2>
-            <p>Access your diagnoses, prescriptions, and health records securely.</p>
-        </div>
-    </div>
-
-    {% for record in records %}
-    <div class="glass-card record-item">
-        <div class="record-header">
-            <div>
-                <h3 style="margin-bottom: 0.25rem;">Appointment with Dr. {{ record.appointment.doctor.user.get_full_name|default:record.appointment.doctor.user.username }}</h3>
-                <span style="color: var(--text-muted); font-size: 0.9rem;">{{ record.appointment.appointment_date|date:"F j, Y" }}</span>
+    
+    <!-- Sidebar Patient Info -->
+    <aside class="profile-sidebar">
+        <div class="profile-header">
+            <div class="profile-avatar">
+                {% if patient.patient_pic %}
+                <img src="{{ patient.patient_pic.url }}" alt="Patient Pic">
+                {% else %}
+                👤
+                {% endif %}
             </div>
-            <div style="text-align: right;">
-                <span class="tag" style="background: rgba(34, 197, 94, 0.1); color: #86efac; border-color: rgba(34, 197, 94, 0.2);">{{ record.appointment.status }}</span>
-            </div>
+            <h1 class="profile-name">{{ request.user.get_full_name|default:request.user.username }}</h1>
+            <span class="profile-role">Patient Profile</span>
         </div>
 
-        <div class="record-body">
-            <span class="record-label">Diagnosis</span>
-            <p>{{ record.diagnosis|default:"No diagnosis recorded." }}</p>
-            
-            <span class="record-label" style="margin-top: 1.5rem;">Prescription</span>
-            <p>{{ record.prescription|default:"No prescription provided." }}</p>
+        <div class="info-list">
+            <div class="info-item">
+                <span class="info-label">Blood Group</span>
+                <span class="info-value">{{ patient.blood_group|default:"Not specified" }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Gender</span>
+                <span class="info-value">{{ patient.gender|default:"Not specified" }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Date of Birth</span>
+                <span class="info-value">{{ patient.date_of_birth|date:"F j, Y"|default:"Not specified" }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Medical History</span>
+                <p class="info-value" style="font-size: 0.9rem; line-height: 1.5; margin-top: 0.25rem;">
+                    {{ patient.medical_history|default:"No medical history recorded." }}
+                </p>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Allergies</span>
+                <p class="info-value" style="font-size: 0.9rem; line-height: 1.5; color: #dc2626; margin-top: 0.25rem;">
+                    {{ patient.allergies|default:"No allergies recorded." }}
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Section -->
+    <section class="history-main">
+        <div class="history-header">
+            <h2 style="color: #0ba9b2;">Appointments & Health Records</h2>
+            <p>A history of all your completed, pending, and scheduled doctor consultations.</p>
         </div>
 
-        {% if record.file %}
-        <div style="display: flex; align-items: center; gap: 1rem;">
-            <span style="font-size: 1.5rem;">📄</span>
-            <div style="flex: 1;">
-                <div style="font-weight: 500;">Attached Document</div>
-                <div style="font-size: 0.8rem; color: var(--text-muted);">{{ record.file.name }}</div>
+        {% for appt in appointments %}
+        <div class="timeline-card">
+            <div class="card-top">
+                <div class="doc-info">
+                    <h3>Dr. {{ appt.doctor.user.get_full_name|default:appt.doctor.user.username }}</h3>
+                    <span class="doc-spec">{{ appt.doctor.specialization }} &bull; {{ appt.hospital.name }}</span>
+                    <div class="appt-date">
+                        <i class="fa-regular fa-calendar"></i> {{ appt.appointment_date|date:"F j, Y" }} 
+                        &bull; {{ appt.start_time|time:"H:i" }} - {{ appt.end_time|time:"H:i" }}
+                    </div>
+                </div>
+                <div>
+                    <span class="badge-status status-{{ appt.status }}">{{ appt.status }}</span>
+                </div>
             </div>
-            <a href="{{ record.file.url }}" class="btn btn-primary" style="width: auto; padding: 0.5rem 1.5rem; font-size: 0.85rem;">Download</a>
+
+            {% if appt.symptoms %}
+            <div class="symptoms-box">
+                <span style="font-weight: 600; font-size: 0.8rem; text-transform: uppercase; color: #6b7280; display: block; margin-bottom: 0.25rem;">Reason / Symptoms</span>
+                {{ appt.symptoms }}
+            </div>
+            {% endif %}
+
+            <div class="card-footer">
+                <div>
+                    <span style="font-size: 0.85rem; color: #6b7280; font-weight: 500;">
+                        Mode: <strong style="color: #111827;">{{ appt.consultation_mode }}</strong>
+                    </span>
+                </div>
+
+                <div>
+                    {% if appt.medicalrecord %}
+                    <button type="button" class="btn-action" 
+                        onclick="openPrescriptionModal(
+                            'Dr. {{ appt.doctor.user.get_full_name|escapejs|default:appt.doctor.user.username|escapejs }}',
+                            '{{ appt.appointment_date|date:'F j, Y'|escapejs }}',
+                            '{{ appt.medicalrecord.diagnosis|escapejs }}',
+                            '{{ appt.medicalrecord.prescription|escapejs }}',
+                            '{% if appt.medicalrecord.file %}{{ appt.medicalrecord.file.url|escapejs }}{% endif %}'
+                        )">
+                        <i class="fa-solid fa-file-prescription"></i> View Prescription
+                    </button>
+                    {% else %}
+                    <span class="placeholder-text">
+                        <i class="fa-regular fa-circle-question"></i> No Prescription Available
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-        {% endif %}
-    </div>
-    {% empty %}
-    <div class="glass-card" style="text-align: center; padding: 4rem;">
-        <p style="color: var(--text-muted);">No medical records found.</p>
-    </div>
-    {% endfor %}
+        {% empty %}
+        <div class="timeline-card" style="text-align: center; padding: 4rem;">
+            <p style="color: #9ca3af; font-size: 1.1rem;">You have no appointments booked yet.</p>
+        </div>
+        {% endfor %}
+    </section>
 </div>
+
+<!-- Prescription Modal -->
+<div id="prescriptionModal" class="modal-overlay" onclick="closeModalOnOutsideClick(event)">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closePrescriptionModal()">&times;</button>
+        <h3 class="modal-title">Prescription Details</h3>
+        <p class="modal-subtitle" id="modal_subtitle"></p>
+
+        <div class="modal-section">
+            <span class="modal-label">Diagnosis</span>
+            <div class="modal-box" id="modal_diagnosis"></div>
+        </div>
+
+        <div class="modal-section">
+            <span class="modal-label">Prescribed Medicine & Instructions</span>
+            <div class="modal-box" id="modal_prescription"></div>
+        </div>
+
+        <div class="modal-section" id="modal_file_section" style="display: none;">
+            <span class="modal-label">Attached Report / Document</span>
+            <div style="display: flex; align-items: center; justify-content: space-between; background: #eff6ff; border: 1px solid #bfdbfe; padding: 1rem; border-radius: 12px; margin-top: 0.5rem;">
+                <span style="font-size: 0.9rem; color: #1e3a8a; font-weight: 500;"><i class="fa-solid fa-file-pdf"></i> Attached Report.pdf</span>
+                <a id="modal_file_link" href="#" target="_blank" class="btn-action" style="padding: 6px 14px; font-size: 0.8rem;">View Document</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function openPrescriptionModal(doctorName, apptDate, diagnosis, prescription, fileUrl) {
+    document.getElementById('modal_subtitle').innerText = `Issued by ${doctorName} on ${apptDate}`;
+    document.getElementById('modal_diagnosis').innerText = diagnosis || "No diagnosis details provided.";
+    document.getElementById('modal_prescription').innerText = prescription || "No prescription medicines listed.";
+    
+    const fileSection = document.getElementById('modal_file_section');
+    const fileLink = document.getElementById('modal_file_link');
+    if (fileUrl) {
+        fileLink.href = fileUrl;
+        fileSection.style.display = 'block';
+    } else {
+        fileSection.style.display = 'none';
+    }
+    
+    document.getElementById('prescriptionModal').style.display = 'flex';
+}
+
+function closePrescriptionModal() {
+    document.getElementById('prescriptionModal').style.display = 'none';
+}
+
+function closeModalOnOutsideClick(event) {
+    const modal = document.getElementById('prescriptionModal');
+    if (event.target === modal) {
+        closePrescriptionModal();
+    }
+}
+</script>
 {% endblock %}

@@ -13,14 +13,18 @@ def medical_records(request):
     if request.user.role == 'PATIENT':
         try:
             patient = PatientProfile.objects.get(user=request.user)
-            records = MedicalRecord.objects.filter(appointment__patient=patient).order_by('-created_at')
+            appointments = Appointment.objects.filter(patient=patient).order_by('-appointment_date', '-start_time')
         except PatientProfile.DoesNotExist:
-            records = []
+            patient = None
+            appointments = []
     else:
-        # For doctors, maybe show records of their patients?
-        records = []
+        patient = None
+        appointments = []
         
-    return render(request, 'booking/medical_records.html', {'records': records})
+    return render(request, 'booking/medical_records.html', {
+        'patient': patient,
+        'appointments': appointments
+    })
 
 @login_required
 def book_appointment(request, doctor_id):

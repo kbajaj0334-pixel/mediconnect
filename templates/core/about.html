@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}About Us | Mediconnect{% endblock %}
+
+{% block extra_css %}
+<style>
+    .static-page {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 4rem 2rem;
+    }
+    .static-page h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+        color: #111827;
+    }
+    .static-page .lead {
+        color: #6b7280;
+        font-size: 1.1rem;
+        line-height: 1.7;
+        margin-bottom: 2.5rem;
+    }
+    .static-card {
+        background: #fff;
+        border: 1px solid #f3f4f6;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+    }
+    .static-card h2 {
+        font-size: 1.25rem;
+        margin-bottom: 0.75rem;
+        color: #111827;
+    }
+    .static-card p {
+        color: #6b7280;
+        line-height: 1.7;
+    }
+    .values-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    .value-item {
+        background: #f9fafb;
+        border-radius: 8px;
+        padding: 1.25rem;
+    }
+    .value-item h3 {
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+        color: #111827;
+    }
+    .value-item p {
+        font-size: 0.9rem;
+        color: #6b7280;
+        margin: 0;
+    }
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 1rem;
+        text-align: center;
+    }
+    .stat-box strong {
+        display: block;
+        font-size: 1.75rem;
+        color: #111827;
+    }
+    .stat-box span {
+        font-size: 0.85rem;
+        color: #6b7280;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="static-page">
+    <h1>About Mediconnect</h1>
+    <p class="lead">Mediconnect is a healthcare platform that connects patients with doctors and hospitals for easier appointment booking and record management.</p>
+
+    <div class="static-card">
+        <h2>Our Mission</h2>
+        <p>{{ mission }}</p>
+    </div>
+
+    <div class="static-card">
+        <h2>Our Vision</h2>
+        <p>{{ vision }}</p>
+    </div>
+
+    <div class="static-card">
+        <h2>What We Stand For</h2>
+        <div class="values-grid">
+            {% for title, description in values %}
+            <div class="value-item">
+                <h3>{{ title }}</h3>
+                <p>{{ description }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="static-card">
+        <h2>By the Numbers</h2>
+        <div class="stats-row">
+            {% for number, label in stats %}
+            <div class="stat-box">
+                <strong>{{ number }}</strong>
+                <span>{{ label }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

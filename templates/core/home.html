@@ -420,8 +420,8 @@
                     <span class="tag">{{ hospital.state }}</span>
                 </div>
                 <p>{{ hospital.address|truncatewords:15 }}</p>
-                <a href="#" class="btn hero-btn secondary"
-                    style="display: block; text-align: center; margin-top: 1rem;">View Details</a>
+                <a href="{% url 'hospital_doctors' hospital.id %}" class="btn hero-btn primary"
+                        style="padding: 0.5rem 1.25rem; font-size: 0.85rem;text-decoration: none;">View Details</a>
             </div>
         </div>
         {% empty %}

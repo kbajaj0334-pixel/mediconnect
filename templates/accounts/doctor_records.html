@@ -17,7 +17,9 @@
         <th style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #5b6b7c; font-weight: 500;">Patient</th>
         <th style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #5b6b7c; font-weight: 500;">Appointment Date</th>
         <th style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #5b6b7c; font-weight: 500;">Diagnosis</th>
+        <th style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #5b6b7c; font-weight: 500;">Prescription</th>
         <th style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #5b6b7c; font-weight: 500;">File</th>
+        <th style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #5b6b7c; font-weight: 500; text-align: right;">Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -28,21 +30,101 @@
         </td>
         <td style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #000;">{{ record.appointment.appointment_date }}</td>
         <td style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #5b6b7c;">{{ record.diagnosis|default:"-" }}</td>
+        <td style="padding: 16px; border-bottom: 1px solid #edf2f7; color: #5b6b7c;">{{ record.prescription|default:"-"|truncatechars:50 }}</td>
         <td style="padding: 16px; border-bottom: 1px solid #edf2f7;">
           {% if record.file %}
-          <a href="{{ record.file.url }}" target="_blank" style="color: #1f6fff; text-decoration: none; font-weight: 500;">View File</a>
+          <a href="{{ record.file.url }}" target="_blank" style="color: #1f6fff; text-decoration: none; font-weight: 500;"><i class="fa-solid fa-file-pdf"></i> View File</a>
           {% else %}
           <span style="color: #7b8ba1;">-</span>
           {% endif %}
         </td>
+        <td style="padding: 16px; border-bottom: 1px solid #edf2f7; text-align: right;">
+          <div style="display: inline-flex; gap: 10px;">
+            <button onclick="openUpdateModal('{{ record.id }}', '{{ record.appointment.patient.user.username|escapejs }}', '{{ record.diagnosis|escapejs }}', '{{ record.prescription|escapejs }}', '{% if record.file %}{{ record.file.url|escapejs }}{% endif %}')" style="background: #eaf2ff; color: #1f6fff; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 500; cursor: pointer; font-size: 14px; font-family: inherit;"><i class="fa-solid fa-pen"></i> Update</button>
+            <form method="POST" onsubmit="return confirm('Delete this record permanently?');" style="display: inline;">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="delete">
+              <input type="hidden" name="record_id" value="{{ record.id }}">
+              <button type="submit" style="background: #fff2f2; color: #ff4d4d; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 500; cursor: pointer; font-size: 14px; font-family: inherit;"><i class="fa-solid fa-trash"></i> Delete</button>
+            </form>
+          </div>
+        </td>
       </tr>
       {% empty %}
       <tr>
-        <td colspan="4" style="padding: 20px; text-align: center; color: #7b8ba1;">No medical records found.</td>
+        <td colspan="6" style="padding: 20px; text-align: center; color: #7b8ba1;">No medical records found.</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
+
+<!-- Update Modal -->
+<div id="updateModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; transition: all 0.3s ease;">
+  <div style="background: white; border-radius: 20px; width: 550px; max-width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 30px; position: relative;">
+    <button type="button" onclick="closeUpdateModal()" style="position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 20px; color: #7b8ba1; cursor: pointer; transition: color 0.2s;"><i class="fa-solid fa-xmark"></i></button>
+    <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 5px; color: #000;">Update Medical Record</h3>
+    <p style="color: #7b8ba1; font-size: 14px; margin-bottom: 25px;">Patient: <strong id="update_patient_name" style="color: #1f6fff;">-</strong></p>
+    
+    <form method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 18px;">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="update">
+      <input type="hidden" name="record_id" id="update_record_id">
+      
+      <div>
+        <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px; color: #374151;">Diagnosis</label>
+        <input type="text" name="diagnosis" id="update_diagnosis" required style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #d1d5db; font-family: inherit; font-size: 14px; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#1f6fff'" onblur="this.style.borderColor='#d1d5db'">
+      </div>
+      
+      <div>
+        <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px; color: #374151;">Prescription</label>
+        <textarea name="prescription" id="update_prescription" required rows="4" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #d1d5db; font-family: inherit; font-size: 14px; resize: vertical; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#1f6fff'" onblur="this.style.borderColor='#d1d5db'"></textarea>
+      </div>
+      
+      <div>
+        <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px; color: #374151;">Update File / Report (Optional)</label>
+        <input type="file" name="file" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #d1d5db; font-family: inherit; font-size: 14px; outline: none;">
+        <div style="margin-top: 8px; font-size: 13px;">
+          <span style="color: #7b8ba1; font-weight: 500;">Current file:</span>
+          <span id="current_file_container"></span>
+        </div>
+      </div>
+      
+      <div style="display: flex; gap: 12px; margin-top: 10px; justify-content: flex-end;">
+        <button type="button" onclick="closeUpdateModal()" style="background: #f3f4f6; color: #4b5563; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 500; cursor: pointer; transition: background 0.2s;">Cancel</button>
+        <button type="submit" style="background: #1f6fff; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 500; cursor: pointer; transition: opacity 0.2s;">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openUpdateModal(id, patientName, diagnosis, prescription, fileUrl) {
+    document.getElementById('update_record_id').value = id;
+    document.getElementById('update_patient_name').innerText = patientName;
+    document.getElementById('update_diagnosis').value = diagnosis;
+    document.getElementById('update_prescription').value = prescription;
+    
+    const fileContainer = document.getElementById('current_file_container');
+    if (fileUrl) {
+        fileContainer.innerHTML = `<a href="${fileUrl}" target="_blank" style="color: #1f6fff; text-decoration: none; font-weight: 500;"><i class="fa-solid fa-eye"></i> View Current File</a>`;
+    } else {
+        fileContainer.innerHTML = `<span style="color: #7b8ba1;">No file attached</span>`;
+    }
+    
+    document.getElementById('updateModal').style.display = 'flex';
+}
+
+function closeUpdateModal() {
+    document.getElementById('updateModal').style.display = 'none';
+}
+
+// Close modal when clicking outside of it
+window.onclick = function(event) {
+    const modal = document.getElementById('updateModal');
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+</script>
 {% endblock %}
- 

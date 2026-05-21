@@ -283,8 +283,16 @@ def doctor_appointments(request):
         if appt_id and new_status in dict(Appointment.STATUS_CHOICES):
             try:
                 appt = Appointment.objects.get(id=appt_id, doctor=doctor)
+                old_status = appt.status
                 appt.status = new_status
                 appt.save()
+                
+                if old_status != new_status:
+                    from core.models import Notification
+                    Notification.objects.create(
+                        user=appt.patient.user,
+                        message=f"Your appointment with Dr. {doctor.user.get_full_name() or doctor.user.username} on {appt.appointment_date} has been updated to {new_status.title()}."
+                    )
                 messages.success(request, f'Appointment status updated to {new_status}')
             except Appointment.DoesNotExist:
                 messages.error(request, 'Appointment not found.')
@@ -324,25 +332,33 @@ def doctor_prescriptions(request):
                 record, created = MedicalRecord.objects.get_or_create(appointment=appt)
                 record.prescription = prescription
                 record.diagnosis = diagnosis
+                if 'file' in request.FILES:
+                    record.file = request.FILES['file']
                 record.save()
+                
+                from core.models import Notification
+                Notification.objects.create(
+                    user=appt.patient.user,
+                    message=f"A new prescription has been added for appointment #{appt.id} by Dr. {doctor.user.get_full_name() or doctor.user.username}."
+                )
+                
                 messages.success(request, 'Prescription saved successfully.')
+                return redirect('doctor_records')
             except Appointment.DoesNotExist:
                 messages.error(request, 'Invalid appointment.')
         elif action == 'delete':
             record_id = request.POST.get('record_id')
             try:
                 record = MedicalRecord.objects.get(id=record_id, appointment__doctor=doctor)
-                record.prescription = '' # Or delete the record completely if you want: record.delete()
-                record.save()
+                record.delete()
                 messages.success(request, 'Prescription deleted.')
             except MedicalRecord.DoesNotExist:
                 messages.error(request, 'Record not found.')
-        return redirect('doctor_prescriptions')
+        return redirect('doctor_records')
 
-    records = MedicalRecord.objects.filter(appointment__doctor=doctor).exclude(prescription='').order_by('-created_at')
     # Also fetch completed appointments without prescriptions to allow creating new ones
     appointments = Appointment.objects.filter(doctor=doctor, status='COMPLETED', medicalrecord__isnull=True)
-    return render(request, 'accounts/doctor_prescriptions.html', {'doctor': doctor, 'records': records, 'appointments': appointments})
+    return render(request, 'accounts/doctor_prescriptions.html', {'doctor': doctor, 'appointments': appointments})
 
 @login_required
 def doctor_records(request):
@@ -350,6 +366,35 @@ def doctor_records(request):
         return redirect('home')
     doctor = DoctorProfile.objects.get(user=request.user)
     from booking.models import MedicalRecord
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        record_id = request.POST.get('record_id')
+        try:
+            record = MedicalRecord.objects.get(id=record_id, appointment__doctor=doctor)
+            if action == 'update':
+                record.diagnosis = request.POST.get('diagnosis', '')
+                record.prescription = request.POST.get('prescription', '')
+                if 'file' in request.FILES:
+                    record.file = request.FILES['file']
+                elif request.POST.get('clear_file') == 'true':
+                    record.file = None
+                record.save()
+                
+                from core.models import Notification
+                Notification.objects.create(
+                    user=record.appointment.patient.user,
+                    message=f"Your prescription for appointment #{record.appointment.id} has been updated by Dr. {doctor.user.get_full_name() or doctor.user.username}."
+                )
+                
+                messages.success(request, 'Medical record updated successfully.')
+            elif action == 'delete':
+                record.delete()
+                messages.success(request, 'Medical record deleted successfully.')
+        except MedicalRecord.DoesNotExist:
+            messages.error(request, 'Record not found.')
+        return redirect('doctor_records')
+
     records = MedicalRecord.objects.filter(appointment__doctor=doctor).order_by('-created_at')
     return render(request, 'accounts/doctor_records.html', {'doctor': doctor, 'records': records})
 

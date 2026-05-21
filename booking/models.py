@@ -100,9 +100,9 @@ class MedicalRecord(models.Model):
     appointment = models.OneToOneField(Appointment, on_delete=models.CASCADE)
     diagnosis = models.TextField(blank=True)
     prescription = models.TextField(blank=True)
-    file = models.FileField(upload_to='records/', blank=True, null=True)
+    file = models.FileField(upload_to='media/records/', blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def __str___(self):
+    def __str__(self):
         return f"{self.appointment.patient} -> {self.appointment.doctor}"

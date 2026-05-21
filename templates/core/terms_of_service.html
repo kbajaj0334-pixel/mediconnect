@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Terms of Service | Mediconnect{% endblock %}
+
+{% block extra_css %}
+<style>
+    .static-page {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 4rem 2rem;
+    }
+    .static-page h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: #111827;
+    }
+    .updated {
+        color: #9ca3af;
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+    }
+    .static-page .intro {
+        color: #6b7280;
+        line-height: 1.7;
+        margin-bottom: 2rem;
+    }
+    .policy-section {
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    .policy-section:last-child { border-bottom: none; }
+    .policy-section h2 {
+        font-size: 1.15rem;
+        color: #111827;
+        margin-bottom: 0.75rem;
+    }
+    .policy-section p {
+        color: #6b7280;
+        line-height: 1.7;
+        margin: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="static-page">
+    <h1>Terms of Service</h1>
+    <p class="updated">Last updated: {{ last_updated }}</p>
+    <p class="intro">Please read these terms carefully before using Mediconnect. The following is sample terms text for development and demo use only.</p>
+
+    {% for title, body in sections %}
+    <div class="policy-section">
+        <h2>{{ title }}</h2>
+        <p>{{ body }}</p>
+    </div>
+    {% endfor %}
+
+    <p class="intro" style="margin-top: 2rem; margin-bottom: 0;">See also our <a href="{% url 'privacy_policy' %}">Privacy Policy</a> or <a href="{% url 'contact_us' %}">Contact Us</a> page.</p>
+</div>
+{% endblock %}
