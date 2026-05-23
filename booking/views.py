@@ -196,3 +196,138 @@ def get_available_slots(request, doctor_id, date):
             current_time = slot_end
             
     return JsonResponse({'slots': slots})
+
+@login_required
+def appointment_detail(request, appointment_id):
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+    
+    # Check authorization: user must be the patient or the doctor of the appointment
+    if request.user.role == 'PATIENT':
+        try:
+            patient = request.user.patientprofile
+            if appointment.patient != patient:
+                messages.error(request, 'You are not authorized to view this appointment.')
+                return redirect('home')
+        except PatientProfile.DoesNotExist:
+            messages.error(request, 'Patient profile not found.')
+            return redirect('home')
+    elif request.user.role == 'DOCTOR':
+        try:
+            doctor = request.user.doctorprofile
+            if appointment.doctor != doctor:
+                messages.error(request, 'You are not authorized to view this appointment.')
+                return redirect('home')
+        except DoctorProfile.DoesNotExist:
+            messages.error(request, 'Doctor profile not found.')
+            return redirect('home')
+    else:
+        messages.error(request, 'Access denied.')
+        return redirect('home')
+
+    return render(request, 'booking/appointment_detail.html', {'appointment': appointment})
+
+@login_required
+def reschedule_closest_slot(request, appointment_id):
+    from django.utils import timezone
+    from datetime import timezone as py_timezone, timedelta
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+    
+    # Check authorization: user must be the patient of this appointment
+    if request.user.role != 'PATIENT':
+        return JsonResponse({'error': 'Only patients can reschedule.'}, status=403)
+        
+    try:
+        patient = request.user.patientprofile
+        if appointment.patient != patient:
+            return JsonResponse({'error': 'Unauthorized.'}, status=403)
+    except PatientProfile.DoesNotExist:
+        return JsonResponse({'error': 'Patient profile not found.'}, status=404)
+        
+    # Check if severity is High or Critical
+    if appointment.severity_level not in ['HIGH', 'CRITICAL']:
+        return JsonResponse({'error': 'Rescheduling to closest slot is only allowed for High or Critical severity level.'}, status=400)
+        
+    doctor = appointment.doctor
+    
+    # Use Indian Standard Time (IST = UTC + 5:30)
+    ist_tz = py_timezone(timedelta(hours=5, minutes=30))
+    current_datetime = timezone.now().astimezone(ist_tz)
+    found_slot = None
+    
+    # Look for the closest slot within the next 30 days
+    for day_offset in range(30):
+        search_date = current_datetime.date() + timedelta(days=day_offset)
+        weekday = search_date.weekday()
+        
+        # Get active availability for the doctor on this weekday
+        availabilities = DoctorAvailability.objects.filter(
+            doctor=doctor, weekday=weekday, is_active=True
+        ).order_by('start_time')
+        
+        # Fetch existing appointments for this doctor on this search date
+        booked_appointments = Appointment.objects.filter(
+            doctor=doctor,
+            appointment_date=search_date,
+            status__in=['PENDING', 'APPROVED']
+        )
+        
+        for avail in availabilities:
+            slot_start_dt = datetime.combine(search_date, avail.start_time)
+            slot_end_dt = datetime.combine(search_date, avail.end_time)
+            slot_duration = timedelta(minutes=avail.slot_duration)
+            
+            curr_slot_start = slot_start_dt
+            while curr_slot_start + slot_duration <= slot_end_dt:
+                curr_slot_end = curr_slot_start + slot_duration
+                
+                # If search date is today, make sure the slot start time is in the future
+                if search_date == current_datetime.date():
+                    if curr_slot_start.time() <= current_datetime.time():
+                        curr_slot_start = curr_slot_end
+                        continue
+                
+                # Check if this slot overlaps with any booked appointments (excluding this one)
+                overlap = booked_appointments.filter(
+                    start_time__lt=curr_slot_end.time(),
+                    end_time__gt=curr_slot_start.time()
+                )
+                if appointment.pk:
+                    overlap = overlap.exclude(pk=appointment.pk)
+                    
+                if not overlap.exists():
+                    found_slot = {
+                        'date': search_date,
+                        'start_time': curr_slot_start.time(),
+                        'end_time': curr_slot_end.time()
+                    }
+                    break
+                    
+                curr_slot_start = curr_slot_end
+            if found_slot:
+                break
+        if found_slot:
+            break
+            
+    if found_slot:
+        appointment.appointment_date = found_slot['date']
+        appointment.start_time = found_slot['start_time']
+        appointment.end_time = found_slot['end_time']
+        appointment.status = 'APPROVED'
+        
+        try:
+            appointment.full_clean()
+            appointment.save()
+            messages.success(
+                request,
+                f"Appointment rescheduled to closest slot: {found_slot['date'].strftime('%A, %b %d')} at {found_slot['start_time'].strftime('%H:%M')}."
+            )
+            return JsonResponse({
+                'success': True,
+                'new_date': found_slot['date'].strftime('%Y-%m-%d'),
+                'new_start_time': found_slot['start_time'].strftime('%H:%M'),
+                'new_end_time': found_slot['end_time'].strftime('%H:%M')
+            })
+        except Exception as e:
+            return JsonResponse({'error': f"Rescheduling failed: {e}"}, status=400)
+    else:
+        return JsonResponse({'error': 'No available slots found in the next 30 days.'}, status=404)

@@ -16,6 +16,9 @@ def home_view(request):
                     appointment_date__gte=timezone.now().date(),
                     status__in=['PENDING', 'APPROVED']
                 ).order_by('appointment_date', 'start_time')[:3]
+                context['latest_appointment'] = Appointment.objects.filter(
+                    patient=patient
+                ).order_by('-booked_at').first()
             except PatientProfile.DoesNotExist:
                 pass
         

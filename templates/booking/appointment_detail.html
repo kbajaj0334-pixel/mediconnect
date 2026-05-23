@@ -1,0 +1,486 @@
+{% extends 'base.html' %}
+
+{% block title %}Appointment Details | Mediconnect{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-container {
+        padding: 3rem 2rem;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .back-link {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: color 0.2s;
+    }
+
+    .back-link:hover {
+        color: var(--text-main);
+    }
+
+    .grid-layout {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
+        gap: 2.5rem;
+    }
+
+    @media (max-width: 850px) {
+        .grid-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .detail-card {
+        padding: 2.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .doctor-header {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid var(--glass-border);
+        padding-bottom: 1.5rem;
+    }
+
+    .doctor-avatar {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        border: 2px solid var(--glass-border);
+    }
+
+    .doctor-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .info-label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.25rem;
+        display: block;
+    }
+
+    .info-value {
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: var(--text-main);
+    }
+
+    .badge-status {
+        padding: 6px 14px;
+        border-radius: 30px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-block;
+        border: 1px solid transparent;
+    }
+
+    .status-PENDING {
+        background: rgba(249, 115, 22, 0.2);
+        color: #fdba74;
+        border: 1px solid rgba(249, 115, 22, 0.4);
+    }
+    .status-APPROVED {
+        background: rgba(59, 130, 246, 0.2);
+        color: #93c5fd;
+        border: 1px solid rgba(59, 130, 246, 0.4);
+    }
+    .status-COMPLETED {
+        background: rgba(34, 197, 94, 0.2);
+        color: #86efac;
+        border: 1px solid rgba(34, 197, 94, 0.4);
+    }
+    .status-CANCELLED {
+        background: rgba(239, 68, 68, 0.2);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+
+    .severity-badge {
+        padding: 6px 14px;
+        border-radius: 30px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-block;
+        margin-top: 0.25rem;
+    }
+
+    .severity-badge.low {
+        background: rgba(148, 163, 184, 0.2);
+        color: #e2e8f0;
+        border: 1px solid rgba(148, 163, 184, 0.4);
+    }
+
+    .severity-badge.medium {
+        background: rgba(234, 179, 8, 0.2);
+        color: #fef08a;
+        border: 1px solid rgba(234, 179, 8, 0.4);
+    }
+
+    .severity-badge.high {
+        background: rgba(239, 68, 68, 0.2);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+
+    .severity-badge.critical {
+        background: rgba(220, 38, 38, 0.3);
+        color: #fecaca;
+        border: 1px solid rgba(220, 38, 38, 0.6);
+        animation: pulse-detail 2s infinite;
+    }
+
+    @keyframes pulse-detail {
+        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+        70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
+        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+    }
+
+    .symptoms-panel {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .pain-track {
+        height: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        position: relative;
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .pain-fill {
+        height: 100%;
+        border-radius: 4px;
+        background: linear-gradient(to right, #34d399, #fbbf24, #f87171);
+    }
+
+    .pain-indicator {
+        position: absolute;
+        top: -4px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #ffffff;
+        border: 3px solid var(--primary);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        transform: translateX(-50%);
+    }
+
+    .sidebar-card {
+        padding: 2rem;
+        height: fit-content;
+    }
+
+    .sidebar-section {
+        margin-bottom: 2rem;
+        border-bottom: 1px solid var(--glass-border);
+        padding-bottom: 1.5rem;
+    }
+
+    .sidebar-section:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+        margin-bottom: 0;
+    }
+
+    .hospital-pic {
+        width: 100%;
+        height: 150px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        border: 1px solid var(--glass-border);
+        overflow: hidden;
+    }
+
+    .hospital-pic img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="detail-container">
+    <div class="header-section">
+        <a href="{% url 'home' %}" class="back-link">
+            ← Back to Dashboard
+        </a>
+        <h1 style="font-size: 2rem; margin: 0; background: none; -webkit-text-fill-color: initial; text-align: left;">Appointment Details</h1>
+    </div>
+
+    <div class="grid-layout">
+        <!-- Main Details -->
+        <div class="glass-card detail-card">
+            <div class="doctor-header">
+                <div class="doctor-avatar">
+                    {% if appointment.doctor.doctor_pic %}
+                    <img src="{{ appointment.doctor.doctor_pic.url }}" alt="Dr. {{ appointment.doctor.user.username }}">
+                    {% else %}
+                    👨‍⚕️
+                    {% endif %}
+                </div>
+                <div>
+                    <h2 style="font-size: 1.5rem; margin-bottom: 0.25rem; font-weight: 700; color: var(--text-main);">
+                        Dr. {{ appointment.doctor.user.get_full_name|default:appointment.doctor.user.username }}
+                    </h2>
+                    <p style="color: var(--text-muted); font-size: 0.95rem; font-weight: 500;">
+                        {{ appointment.doctor.specialization }} &bull; {{ appointment.doctor.experience_years }} Years Experience
+                    </p>
+                </div>
+            </div>
+
+            <div class="info-grid">
+                <div>
+                    <span class="info-label">Appointment Date</span>
+                    <span class="info-value">{{ appointment.appointment_date|date:"l, F j, Y" }}</span>
+                </div>
+                <div>
+                    <span class="info-label">Time Slot</span>
+                    <span class="info-value">{{ appointment.start_time|time:"H:i" }} - {{ appointment.end_time|time:"H:i" }}</span>
+                </div>
+                <div>
+                    <span class="info-label">Consultation Mode</span>
+                    <span class="info-value" style="display: flex; align-items: center; gap: 0.5rem;">
+                        {% if appointment.consultation_mode == 'ONLINE' %}💻{% else %}🏥{% endif %}
+                        {{ appointment.consultation_mode }}
+                    </span>
+                </div>
+                <div>
+                    <span class="info-label">Booking Status</span>
+                    <span class="badge-status status-{{ appointment.status }}">{{ appointment.status }}</span>
+                </div>
+                <div>
+                    <span class="info-label">Severity Level</span>
+                    <span class="severity-badge {{ appointment.severity_level|lower }}">{{ appointment.severity_level }}</span>
+                </div>
+                <div>
+                    <span class="info-label">Booked On</span>
+                    <span class="info-value" style="font-size: 0.95rem;">{{ appointment.booked_at|date:"F j, Y, g:i a" }}</span>
+                </div>
+            </div>
+
+            {% if appointment.severity_level == 'HIGH' or appointment.severity_level == 'CRITICAL' %}
+            <div class="symptoms-panel" id="severity-reschedule-panel" style="border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.05); margin-bottom: 2rem;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <span style="font-size: 2.2rem; animation: pulse-detail 2s infinite; border-radius: 50%; display: inline-block;">⚠️</span>
+                    <div style="flex: 1;">
+                        <h4 style="color: #fca5a5; font-size: 1rem; margin-bottom: 0.25rem; font-weight: 700;">High Severity Symptoms Detected</h4>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.4; margin: 0;">
+                            Your symptoms indicate a <strong>{{ appointment.severity_level }}</strong> severity level. 
+                            We highly recommend rescheduling to the <strong>closest free slot available</strong> with Dr. {{ appointment.doctor.user.get_full_name|default:appointment.doctor.user.username }} to receive urgent medical attention.
+                        </p>
+                    </div>
+                </div>
+                <div style="margin-top: 1.25rem; display: flex; justify-content: flex-end;">
+                    <button id="reschedule-btn" onclick="rescheduleToClosest()" class="btn" style="width: auto; padding: 0.6rem 1.5rem; font-size: 0.85rem; background: linear-gradient(to right, #ef4444, #b91c1c); color: white; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; border: none; box-shadow: 0 4px 10px rgba(239,68,68,0.2);">
+                        ⚡ Reschedule to Closest Free Slot
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if appointment.symptoms %}
+            <div class="symptoms-panel">
+                <span class="info-label" style="color: var(--primary);">Patient Reported Symptoms</span>
+                <p style="color: var(--text-main); font-size: 1rem; line-height: 1.6; margin-top: 0.5rem;">
+                    {{ appointment.symptoms }}
+                </p>
+            </div>
+            {% endif %}
+
+            {% if appointment.pain_level > 1 or appointment.symptoms %}
+            <div class="symptoms-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="info-label" style="color: var(--secondary);">Pain Level</span>
+                    <span style="font-weight: 700; color: var(--text-main); font-size: 1.1rem;">{{ appointment.pain_level }} / 10</span>
+                </div>
+                <div class="pain-track">
+                    <div class="pain-fill" style="width: 100%;"></div>
+                    <div class="pain-indicator" style="left: calc({{ appointment.pain_level }} * 10%);"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
+                    <span>Mild</span>
+                    <span>Moderate</span>
+                    <span>Severe</span>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if appointment.medicalrecord %}
+            <div class="symptoms-panel" style="border-color: rgba(34, 197, 94, 0.3); background: rgba(34, 197, 94, 0.02);">
+                <span class="info-label" style="color: #4ade80;">Prescription & Diagnosis</span>
+                <div style="margin-top: 1rem;">
+                    <h4 style="font-size: 0.95rem; color: var(--text-main); margin-bottom: 0.25rem;">Diagnosis</h4>
+                    <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1rem; line-height: 1.5;">
+                        {{ appointment.medicalrecord.diagnosis|default:"No diagnosis recorded." }}
+                    </p>
+                    
+                    <h4 style="font-size: 0.95rem; color: var(--text-main); margin-bottom: 0.25rem;">Medicines</h4>
+                    <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; white-space: pre-line;">
+                        {{ appointment.medicalrecord.prescription|default:"No medicines prescribed." }}
+                    </p>
+
+                    {% if appointment.medicalrecord.file %}
+                    <div style="margin-top: 1rem; display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--glass-border);">
+                        <span style="font-size: 0.85rem; color: var(--text-muted);"><i class="fa-solid fa-file-pdf"></i> Attached Report</span>
+                        <a href="{{ appointment.medicalrecord.file.url }}" target="_blank" class="btn" style="width: auto; padding: 0.35rem 0.75rem; font-size: 0.8rem; background: var(--primary); color: white; border-radius: 6px; text-decoration: none;">View Document</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar Hospital & Contact Details -->
+        <div class="glass-card sidebar-card">
+            <div class="sidebar-section">
+                <h3 style="font-size: 1.2rem; color: var(--text-main); margin-bottom: 1rem;">Hospital Venue</h3>
+                <div class="hospital-pic">
+                    {% if appointment.hospital.pic %}
+                    <img src="{{ appointment.hospital.pic.url }}" alt="{{ appointment.hospital.name }}">
+                    {% else %}
+                    🏥
+                    {% endif %}
+                </div>
+                <h4 style="font-size: 1.1rem; color: var(--text-main); margin-bottom: 0.5rem;">{{ appointment.hospital.name }}</h4>
+                <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; margin-bottom: 0.5rem;">
+                    📍 {{ appointment.hospital.address }}, {{ appointment.hospital.state }}
+                </p>
+            </div>
+
+            <div class="sidebar-section">
+                <h3 style="font-size: 1.2rem; color: var(--text-main); margin-bottom: 1rem;">Contact Info</h3>
+                <div style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.9rem;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-muted);">Hospital Phone:</span>
+                        <span style="font-weight: 500;">{{ appointment.hospital.phone }}</span>
+                    </div>
+                    {% if appointment.hospital.email %}
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-muted);">Hospital Email:</span>
+                        <span style="font-weight: 500;">{{ appointment.hospital.email }}</span>
+                    </div>
+                    {% endif %}
+                    <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--glass-border); padding-top: 0.75rem;">
+                        <span style="color: var(--text-muted);">Consultation Fee:</span>
+                        <span style="font-weight: 700; color: var(--primary); font-size: 1rem;">
+                            ₹{% if appointment.consultation_mode == 'ONLINE' %}{{ appointment.doctor.fees_online }}{% else %}{{ appointment.doctor.fees_offline }}{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-section" style="border: none;">
+                <a href="{% url 'medical_records' %}" class="btn btn-primary" style="text-decoration: none; font-size: 0.9rem; padding: 0.8rem 1rem;">
+                    📄 View Medical History
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function rescheduleToClosest() {
+    const btn = document.getElementById('reschedule-btn');
+    if (!btn) return;
+    
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '⚡ Finding closest slot...';
+    
+    const url = "{% url 'reschedule_closest_slot' appointment.id %}";
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrftoken,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json().then(data => ({ status: response.status, body: data })))
+    .then(res => {
+        if (res.status === 200 && res.body.success) {
+            // Reload page to show updated date/time and the toast message
+            window.location.reload();
+        } else {
+            alert(res.body.error || 'An error occurred during rescheduling.');
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    })
+    .catch(err => {
+        console.error('Error:', err);
+        alert('Network error. Please check your connection and try again.');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    });
+}
+</script>
+{% endblock %}

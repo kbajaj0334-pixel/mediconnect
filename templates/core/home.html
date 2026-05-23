@@ -274,6 +274,67 @@
             padding: 8rem 0 4rem;
         }
     }
+
+    .appointment-item-hover {
+        transition: all 0.2s ease;
+    }
+    .appointment-item-link:hover .appointment-item-hover {
+        background: rgba(255, 255, 255, 0.05);
+        transform: translateY(-2px);
+    }
+    .severity-badge {
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-left: 0.5rem;
+        display: inline-block;
+    }
+    .severity-badge.high {
+        background-color: rgba(239, 68, 68, 0.2);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+    .severity-badge.critical {
+        background-color: rgba(220, 38, 38, 0.3);
+        color: #fecaca;
+        border: 1px solid rgba(220, 38, 38, 0.6);
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    .badge-status {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        display: inline-block;
+    }
+    .status-PENDING {
+        background: rgba(249, 115, 22, 0.2);
+        color: #fdba74;
+        border: 1px solid rgba(249, 115, 22, 0.4);
+    }
+    .status-APPROVED {
+        background: rgba(59, 130, 246, 0.2);
+        color: #93c5fd;
+        border: 1px solid rgba(59, 130, 246, 0.4);
+    }
+    .status-COMPLETED {
+        background: rgba(34, 197, 94, 0.2);
+        color: #86efac;
+        border: 1px solid rgba(34, 197, 94, 0.4);
+    }
+    .status-CANCELLED {
+        background: rgba(239, 68, 68, 0.2);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.4);
+    }
 </style>
 {% endblock %}
 
@@ -308,29 +369,38 @@
     </div>
 
     <div class="dashboard-grid">
-        <div class="glass-card appointment-card">
-            <div style="flex: 1;">
+        <!-- Upcoming Appointments -->
+        <div class="glass-card" style="padding: 2.5rem; display: flex; flex-direction: column;">
+            <div style="width: 100%;">
                 <h3 style="margin-bottom: 0.5rem; color: var(--text-main);">Upcoming Appointments</h3>
                 {% if upcoming_appointments %}
                 {% for appt in upcoming_appointments %}
-                <div
-                    style="display: flex; align-items: center; gap: 1rem; margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
-                    <div class="date-badge">
-                        <span class="day">{{ appt.appointment_date|date:"d" }}</span>
-                        <span class="month">{{ appt.appointment_date|date:"M" }}</span>
+                <a href="{% url 'appointment_detail' appt.id %}" class="appointment-item-link" style="text-decoration: none; color: inherit; display: block;">
+                    <div class="appointment-item-hover"
+                        style="display: flex; align-items: center; gap: 1rem; margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem; padding-left: 0.5rem; padding-right: 0.5rem; border-radius: 8px;">
+                        <div class="date-badge">
+                            <span class="day">{{ appt.appointment_date|date:"d" }}</span>
+                            <span class="month">{{ appt.appointment_date|date:"M" }}</span>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: var(--text-main); display: flex; align-items: center; justify-content: space-between;">
+                                <span>Dr. {{ appt.doctor.user.get_full_name|default:appt.doctor.user.username }}</span>
+                                {% if appt.severity_level == 'HIGH' or appt.severity_level == 'CRITICAL' %}
+                                <span class="severity-badge {{ appt.severity_level|lower }}">{{ appt.severity_level }}</span>
+                                {% endif %}
+                            </div>
+                            <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">
+                                {{ appt.start_time|time:"H:i" }} - {{ appt.end_time|time:"H:i" }}
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
+                                <div class="tag" style="display: inline-block;">
+                                    {{ appt.consultation_mode }}
+                                </div>
+                                <span style="font-size: 0.75rem; color: var(--primary);">View Details →</span>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <div style="font-weight: 600; color: var(--text-main);">
-                            Dr. {{ appt.doctor.user.get_full_name|default:appt.doctor.user.username }}
-                        </div>
-                        <div style="font-size: 0.85rem; color: var(--text-muted);">
-                            {{ appt.start_time|time:"H:i" }} - {{ appt.end_time|time:"H:i" }}
-                        </div>
-                        <div class="tag" style="margin-top: 0.5rem; display: inline-block;">
-                            {{ appt.consultation_mode }}
-                        </div>
-                    </div>
-                </div>
+                </a>
                 {% endfor %}
                 {% else %}
                 <p style="color: var(--text-muted); margin-top: 1rem;">No upcoming appointments.</p>
@@ -338,9 +408,70 @@
             </div>
         </div>
 
-        <div class="glass-card" style="padding: 2.5rem;">
+        <!-- Latest Booked Appointment -->
+        <div class="glass-card" style="padding: 2.5rem; display: flex; flex-direction: column;">
+            <h3 style="margin-bottom: 0.5rem; color: var(--text-main);">Latest Booked</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Your most recently booked appointment.</p>
+            {% if latest_appointment %}
+            <a href="{% url 'appointment_detail' latest_appointment.id %}" class="appointment-item-link" style="text-decoration: none; color: inherit; display: block; margin-top: auto; margin-bottom: auto;">
+                <div class="latest-card-hover" style="border: 1px solid var(--border-color); padding: 1.25rem; border-radius: 16px; background: rgba(255,255,255,0.02); transition: all 0.2s ease;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                        <div>
+                            <span style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Doctor</span>
+                            <div style="font-weight: 700; font-size: 1.1rem; color: var(--text-main); margin-top: 0.25rem;">
+                                Dr. {{ latest_appointment.doctor.user.get_full_name|default:latest_appointment.doctor.user.username }}
+                            </div>
+                            <span style="font-size: 0.85rem; color: var(--text-muted);">{{ latest_appointment.doctor.specialization }}</span>
+                        </div>
+                        <div class="date-badge" style="padding: 0.75rem; min-width: 70px;">
+                            <span class="day" style="font-size: 1.25rem;">{{ latest_appointment.appointment_date|date:"d" }}</span>
+                            <span class="month" style="font-size: 0.65rem;">{{ latest_appointment.appointment_date|date:"M" }}</span>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem; margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+                            <span style="color: var(--text-muted);">Time:</span>
+                            <span style="font-weight: 500;">{{ latest_appointment.start_time|time:"H:i" }} - {{ latest_appointment.end_time|time:"H:i" }}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+                            <span style="color: var(--text-muted);">Hospital:</span>
+                            <span style="font-weight: 500;">{{ latest_appointment.hospital.name }}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.9rem; align-items: center;">
+                            <span style="color: var(--text-muted);">Severity:</span>
+                            {% if latest_appointment.severity_level == 'HIGH' or latest_appointment.severity_level == 'CRITICAL' %}
+                            <span class="severity-badge {{ latest_appointment.severity_level|lower }}" style="margin-left: 0;">{{ latest_appointment.severity_level }}</span>
+                            {% else %}
+                            <span class="tag" style="background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid var(--border-color);">{{ latest_appointment.severity_level }}</span>
+                            {% endif %}
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.9rem; align-items: center;">
+                            <span style="color: var(--text-muted);">Status:</span>
+                            <span class="badge-status status-{{ latest_appointment.status }}" style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 4px 10px; border-radius: 20px;">
+                                {{ latest_appointment.status }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div style="text-align: right; font-size: 0.85rem; color: var(--primary); font-weight: 600; display: flex; align-items: center; justify-content: flex-end; gap: 4px;">
+                        View Full Details <span style="font-size: 1rem;">→</span>
+                    </div>
+                </div>
+            </a>
+            {% else %}
+            <div style="margin: auto; text-align: center; padding: 2rem 1rem; border: 1px dashed var(--border-color); border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; flex: 1; width: 100%;">
+                <span style="font-size: 2rem;">📅</span>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">No appointments booked yet.</p>
+                <a href="{% url 'find_doctors' %}" class="btn" style="width: auto; padding: 0.5rem 1rem; font-size: 0.8rem; background: var(--primary); color: white; border-radius: 8px; text-decoration: none; margin-top: 0.5rem;">Book Now</a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="glass-card" style="padding: 2.5rem; display: flex; flex-direction: column;">
             <h3 style="margin-bottom: 1.5rem; color: var(--text-main);">Quick Actions</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; flex: 1; align-content: start;">
                 <a href="{% url 'find_doctors' %}" class="quick-action-btn">
                     <span style="font-size: 1.5rem;">🔍</span>
                     Find Doctor
