@@ -26,6 +26,72 @@ def medical_records(request):
         'appointments': appointments
     })
 
+def get_closest_available_slot(doctor, exclude_appointment=None):
+    from django.utils import timezone
+    from datetime import timezone as py_timezone, timedelta, datetime
+    
+    # Use Indian Standard Time (IST = UTC + 5:30)
+    ist_tz = py_timezone(timedelta(hours=5, minutes=30))
+    current_datetime = timezone.now().astimezone(ist_tz)
+    found_slot = None
+    
+    # Look for the closest slot within the next 30 days
+    for day_offset in range(30):
+        search_date = current_datetime.date() + timedelta(days=day_offset)
+        weekday = search_date.weekday()
+        
+        # Get active availability for the doctor on this weekday
+        availabilities = DoctorAvailability.objects.filter(
+            doctor=doctor, weekday=weekday, is_active=True
+        ).order_by('start_time')
+        
+        # Fetch existing appointments for this doctor on this search date
+        booked_appointments = Appointment.objects.filter(
+            doctor=doctor,
+            appointment_date=search_date,
+            status__in=['PENDING', 'APPROVED']
+        )
+        
+        for avail in availabilities:
+            slot_start_dt = datetime.combine(search_date, avail.start_time)
+            slot_end_dt = datetime.combine(search_date, avail.end_time)
+            slot_duration = timedelta(minutes=avail.slot_duration)
+            
+            curr_slot_start = slot_start_dt
+            while curr_slot_start + slot_duration <= slot_end_dt:
+                curr_slot_end = curr_slot_start + slot_duration
+                
+                # If search date is today, make sure the slot start time is in the future
+                if search_date == current_datetime.date():
+                    if curr_slot_start.time() <= current_datetime.time():
+                        curr_slot_start = curr_slot_end
+                        continue
+                
+                # Check if this slot overlaps with any booked appointments (excluding this one)
+                overlap = booked_appointments.filter(
+                    start_time__lt=curr_slot_end.time(),
+                    end_time__gt=curr_slot_start.time()
+                )
+                if exclude_appointment and exclude_appointment.pk:
+                    overlap = overlap.exclude(pk=exclude_appointment.pk)
+                    
+                if not overlap.exists():
+                    found_slot = {
+                        'date': search_date,
+                        'start_time': curr_slot_start.time(),
+                        'end_time': curr_slot_end.time()
+                    }
+                    break
+                    
+                curr_slot_start = curr_slot_end
+            if found_slot:
+                break
+        if found_slot:
+            break
+            
+    return found_slot
+
+
 @login_required
 def book_appointment(request, doctor_id):
     doctor = get_object_or_404(DoctorProfile, id=doctor_id)
@@ -42,7 +108,6 @@ def book_appointment(request, doctor_id):
         
         is_emergency = request.POST.get('is_emergency') == 'on'
         symptoms = request.POST.getlist('symptoms')
-        pain_level = int(request.POST.get('pain_level', 1))
         
         try:
             patient = request.user.patientprofile
@@ -50,50 +115,39 @@ def book_appointment(request, doctor_id):
             messages.error(request, 'Patient profile not found.')
             return redirect('home')
 
+        if not symptoms:
+            messages.error(request, 'Please select at least one symptom.')
+            return redirect('book_appointment', doctor_id=doctor.id)
+
         try:
-            appointment_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-            if not is_emergency or (start_time_str and end_time_str):
+            if is_emergency:
+                # Find nearest slot using rescheduling logic
+                found_slot = get_closest_available_slot(doctor)
+                if found_slot:
+                    appointment_date = found_slot['date']
+                    start_time = found_slot['start_time']
+                    end_time = found_slot['end_time']
+                else:
+                    messages.error(request, 'No available slots found for emergency assignment in the next 30 days.')
+                    return redirect('book_appointment', doctor_id=doctor.id)
+            else:
+                if not date_str or not start_time_str or not end_time_str:
+                    messages.error(request, 'Please select a date and a time slot.')
+                    return redirect('book_appointment', doctor_id=doctor.id)
+                appointment_date = datetime.strptime(date_str, '%Y-%m-%d').date()
                 start_time = datetime.strptime(start_time_str, '%H:%M').time()
                 end_time = datetime.strptime(end_time_str, '%H:%M').time()
-            else:
-                # Auto-assign slot
-                weekday = appointment_date.weekday()
-                availabilities = DoctorAvailability.objects.filter(doctor=doctor, weekday=weekday, is_active=True)
-                booked_appointments = Appointment.objects.filter(
-                    doctor=doctor, appointment_date=appointment_date, status__in=['PENDING', 'APPROVED']
-                )
-                
-                auto_start, auto_end = None, None
-                for avail in availabilities:
-                    current_time = datetime.combine(appointment_date, avail.start_time)
-                    end_time_avail = datetime.combine(appointment_date, avail.end_time)
-                    
-                    while current_time + timedelta(minutes=avail.slot_duration) <= end_time_avail:
-                        slot_end = current_time + timedelta(minutes=avail.slot_duration)
-                        
-                        is_booked = booked_appointments.filter(
-                            start_time__lt=slot_end.time(),
-                            end_time__gt=current_time.time()
-                        ).exists()
-                        
-                        if not is_booked:
-                            auto_start = current_time.time()
-                            auto_end = slot_end.time()
-                            break
-                        current_time = slot_end
-                    if auto_start:
-                        break
-                
-                if auto_start and auto_end:
-                    start_time = auto_start
-                    end_time = auto_end
-                else:
-                    messages.error(request, 'No available slots found for emergency assignment on this date.')
-                    return redirect('book_appointment', doctor_id=doctor.id)
-                    
         except (ValueError, TypeError):
             messages.error(request, 'Invalid date or time.')
             return redirect('book_appointment', doctor_id=doctor.id)
+
+        # Calculate charges
+        from decimal import Decimal
+        base_fee = doctor.fees_online if mode == 'ONLINE' else doctor.fees_offline
+        if is_emergency:
+            fee = base_fee * Decimal('1.10')
+        else:
+            fee = base_fee
 
         appointment = Appointment(
             patient=patient,
@@ -103,20 +157,19 @@ def book_appointment(request, doctor_id):
             start_time=start_time,
             end_time=end_time,
             consultation_mode=mode,
-            symptoms=", ".join(symptoms) if is_emergency else "",
-            pain_level=pain_level if is_emergency else 1,
+            symptoms=", ".join(symptoms),
+            fee=fee,
         )
 
+        # Calculate severity score in both cases
+        severity_data = calculate_severity(symptoms, patient)
+        appointment.severity_score = severity_data['score']
+        appointment.severity_level = severity_data['severity_level']
+
         if is_emergency:
-            severity_data = calculate_severity(pain_level, symptoms, patient)
-            appointment.severity_score = severity_data['score']
-            appointment.severity_level = severity_data['severity_level']
-            
-            if appointment.severity_level == 'CRITICAL' or appointment.severity_level == 'MEDIUM':
-                appointment.status = 'APPROVED'
+            appointment.status = 'APPROVED'
         else:
-            appointment.severity_score = 0
-            appointment.severity_level = 'LOW'
+            appointment.status = 'PENDING'
 
         try:
             appointment.full_clean()
@@ -147,7 +200,7 @@ def book_appointment(request, doctor_id):
                 )
                 messages.warning(request, 'High severity recorded. Doctor has been notified.')
             elif appointment.severity_level == 'MEDIUM':
-                messages.info(request, 'Medium severity recorded. Appointment automatically approved.')
+                messages.info(request, 'Medium severity recorded. Appointment automatically approved.' if is_emergency else 'Medium severity recorded.')
             else:
                 messages.success(request, 'Appointment booked successfully!')
 
@@ -157,6 +210,7 @@ def book_appointment(request, doctor_id):
             return redirect('book_appointment', doctor_id=doctor.id)
 
     return render(request, 'booking/book_appointment.html', {'doctor': doctor})
+
 
 @login_required
 def get_available_slots(request, doctor_id, date):
@@ -228,8 +282,6 @@ def appointment_detail(request, appointment_id):
 
 @login_required
 def reschedule_closest_slot(request, appointment_id):
-    from django.utils import timezone
-    from datetime import timezone as py_timezone, timedelta
     appointment = get_object_or_404(Appointment, id=appointment_id)
     
     # Check authorization: user must be the patient of this appointment
@@ -248,65 +300,7 @@ def reschedule_closest_slot(request, appointment_id):
         return JsonResponse({'error': 'Rescheduling to closest slot is only allowed for High or Critical severity level.'}, status=400)
         
     doctor = appointment.doctor
-    
-    # Use Indian Standard Time (IST = UTC + 5:30)
-    ist_tz = py_timezone(timedelta(hours=5, minutes=30))
-    current_datetime = timezone.now().astimezone(ist_tz)
-    found_slot = None
-    
-    # Look for the closest slot within the next 30 days
-    for day_offset in range(30):
-        search_date = current_datetime.date() + timedelta(days=day_offset)
-        weekday = search_date.weekday()
-        
-        # Get active availability for the doctor on this weekday
-        availabilities = DoctorAvailability.objects.filter(
-            doctor=doctor, weekday=weekday, is_active=True
-        ).order_by('start_time')
-        
-        # Fetch existing appointments for this doctor on this search date
-        booked_appointments = Appointment.objects.filter(
-            doctor=doctor,
-            appointment_date=search_date,
-            status__in=['PENDING', 'APPROVED']
-        )
-        
-        for avail in availabilities:
-            slot_start_dt = datetime.combine(search_date, avail.start_time)
-            slot_end_dt = datetime.combine(search_date, avail.end_time)
-            slot_duration = timedelta(minutes=avail.slot_duration)
-            
-            curr_slot_start = slot_start_dt
-            while curr_slot_start + slot_duration <= slot_end_dt:
-                curr_slot_end = curr_slot_start + slot_duration
-                
-                # If search date is today, make sure the slot start time is in the future
-                if search_date == current_datetime.date():
-                    if curr_slot_start.time() <= current_datetime.time():
-                        curr_slot_start = curr_slot_end
-                        continue
-                
-                # Check if this slot overlaps with any booked appointments (excluding this one)
-                overlap = booked_appointments.filter(
-                    start_time__lt=curr_slot_end.time(),
-                    end_time__gt=curr_slot_start.time()
-                )
-                if appointment.pk:
-                    overlap = overlap.exclude(pk=appointment.pk)
-                    
-                if not overlap.exists():
-                    found_slot = {
-                        'date': search_date,
-                        'start_time': curr_slot_start.time(),
-                        'end_time': curr_slot_end.time()
-                    }
-                    break
-                    
-                curr_slot_start = curr_slot_end
-            if found_slot:
-                break
-        if found_slot:
-            break
+    found_slot = get_closest_available_slot(doctor, exclude_appointment=appointment)
             
     if found_slot:
         appointment.appointment_date = found_slot['date']

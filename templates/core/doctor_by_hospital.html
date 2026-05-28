@@ -176,8 +176,8 @@
                         <div style="display: flex; flex-direction: column; gap: 4px;">
                             <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Consultation Fees</span>
                             <div style="display: flex; gap: 8px;">
-                                <span class="fees-badge">Online: ${{ doctor.fees_online }}</span>
-                                <span class="fees-badge">In-Clinic: ${{ doctor.fees_offline }}</span>
+                                <span class="fees-badge">Online: ₹{{ doctor.fees_online }}</span>
+                                <span class="fees-badge">In-Clinic: ₹{{ doctor.fees_offline }}</span>
                             </div>
                         </div>
                         <a href="{% url 'book_appointment' doctor.id %}" class="btn btn-primary" style="width: auto; padding: 0.6rem 1.5rem; font-size: 0.9rem; border-radius: 8px;">Book Now</a>

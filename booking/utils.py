@@ -63,9 +63,10 @@ def get_available_slots(doctor, hospital, date):
 from datetime import date
 
 
-def calculate_severity(pain_level,symptoms,patient):
+def calculate_severity(symptoms,patient):
     # 1. Base Pain Score
-    score = pain_level * 5
+    # score = pain_level * 5
+    score=1
 
     # 2. Symptom Weights
     symptom_weights = {

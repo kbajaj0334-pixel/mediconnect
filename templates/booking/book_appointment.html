@@ -170,54 +170,45 @@
             {% csrf_token %}
             
             <div class="form-group">
-                <label>Select Date</label>
-                <input type="date" id="appointment_date" name="date" class="form-control" required>
-            </div>
-            
-            <div id="slots_wrapper" class="form-group">
-                <label>Available Slots</label>
-                <div id="slots_container" class="slots-grid">
-                    <p style="color: var(--text-muted); grid-column: 1/-1;">Please select a date to see available slots.</p>
+                <label style="color: var(--text-main); font-weight: 700;">Select Symptoms <span style="color: #ef4444;">*</span></label>
+                <div id="selected_symptoms_container" class="symptoms-tag-container"></div>
+                <div class="symptom-search-wrapper">
+                    <input type="text" id="symptom_search" class="form-control" placeholder="Search symptoms (e.g. Vomiting) or type to add new...">
                 </div>
-                <input type="hidden" id="start_time" name="start_time" required>
-                <input type="hidden" id="end_time" name="end_time" required>
+                <div style="margin-top: 0.75rem;">
+                    <span style="font-size: 0.85rem; color: var(--text-muted);">Suggestions:</span>
+                    <div id="symptoms_suggestions" class="symptoms-suggestions"></div>
+                </div>
+                <div id="hidden_symptoms_inputs"></div>
+            </div>
+
+            <div class="emergency-toggle" style="margin-bottom: 2rem; background: rgba(239, 68, 68, 0.05); padding: 1.25rem; border-radius: 12px; border: 1px dashed rgba(239, 68, 68, 0.2); display: flex; align-items: center; gap: 1rem;">
+                <input type="checkbox" id="is_emergency" name="is_emergency" style="width: 20px; height: 20px; cursor: pointer;">
+                <label for="is_emergency" style="margin-bottom: 0; color: #ef4444; font-weight: 700; cursor: pointer;">🚨 Emergency Booking (Automatic Nearest Slot Assignment + 10% premium fee)</label>
+            </div>
+
+            <div id="date_time_selection_section">
+                <div class="form-group" id="date_wrapper">
+                    <label>Select Date</label>
+                    <input type="date" id="appointment_date" name="date" class="form-control" required>
+                </div>
+                
+                <div id="slots_wrapper" class="form-group">
+                    <label>Available Slots</label>
+                    <div id="slots_container" class="slots-grid">
+                        <p style="color: var(--text-muted); grid-column: 1/-1;">Please select a date to see available slots.</p>
+                    </div>
+                    <input type="hidden" id="start_time" name="start_time" required>
+                    <input type="hidden" id="end_time" name="end_time" required>
+                </div>
             </div>
 
             <div class="form-group">
                 <label>Consultation Mode</label>
                 <select name="consultation_mode" class="form-control" required>
-                    <option value="ONLINE">Online ($ {{ doctor.fees_online }})</option>
-                    <option value="OFFLINE">Offline ($ {{ doctor.fees_offline }})</option>
+                    <option value="ONLINE">Online (₹ {{ doctor.fees_online }})</option>
+                    <option value="OFFLINE">Offline (₹ {{ doctor.fees_offline }})</option>
                 </select>
-            </div>
-
-            <div class="emergency-toggle">
-                <input type="checkbox" id="is_emergency" name="is_emergency" style="width: 20px; height: 20px;">
-                <label for="is_emergency">🚨 Emergency Booking (Automatic Slot Assignment)</label>
-            </div>
-
-            <div id="emergency_details" class="emergency-section">
-                <h4 style="color: #ef4444; margin-bottom: 1rem;">Emergency Details</h4>
-                <!-- <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">If you choose emergency booking, you don't need to manually pick a time slot. We will auto-assign the earliest available slot on the selected date.</p> -->
-                
-                <div class="form-group">
-                    <label style="color: #fca5a5;">Select Symptoms</label>
-                    <div id="selected_symptoms_container" class="symptoms-tag-container"></div>
-                    <div class="symptom-search-wrapper">
-                        <input type="text" id="symptom_search" class="form-control" placeholder="Search symptoms (e.g. Vomiting) or type to add new...">
-                    </div>
-                    <div style="margin-top: 0.75rem;">
-                        <span style="font-size: 0.85rem; color: var(--text-muted);">Suggestions:</span>
-                        <div id="symptoms_suggestions" class="symptoms-suggestions"></div>
-                    </div>
-                    <div id="hidden_symptoms_inputs"></div>
-                </div>
-
-                <div class="form-group" style="margin-top: 1.5rem;">
-                    <label style="color: #fca5a5;">Pain Level (1-10)</label>
-                    <input type="range" name="pain_level" min="1" max="10" value="1" class="form-control" style="padding: 0;" oninput="this.nextElementSibling.value = this.value">
-                    <output style="color: white; font-weight: bold; margin-left: 1rem;">1</output>
-                </div>
             </div>
 
             <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 2rem; font-size: 1.1rem;">Confirm Appointment</button>
@@ -296,18 +287,17 @@
         });
 
         const emergencyToggle = document.getElementById('is_emergency');
-        const emergencyDetails = document.getElementById('emergency_details');
-        const slotsWrapper = document.getElementById('slots_wrapper');
+        const dateTimeSection = document.getElementById('date_time_selection_section');
 
         emergencyToggle.addEventListener('change', function() {
             if(this.checked) {
-                emergencyDetails.style.display = 'block';
-                slotsWrapper.style.opacity = '0.5';
+                dateTimeSection.style.display = 'none';
+                dateInput.required = false;
                 startTimeInput.required = false;
                 endTimeInput.required = false;
             } else {
-                emergencyDetails.style.display = 'none';
-                slotsWrapper.style.opacity = '1';
+                dateTimeSection.style.display = 'block';
+                dateInput.required = true;
                 startTimeInput.required = true;
                 endTimeInput.required = true;
             }
@@ -416,6 +406,16 @@
                     renderSelected();
                     renderSuggestions();
                 }
+            }
+        });
+
+        // Form Submit Validation for Symptoms
+        const bookingForm = document.getElementById('bookingForm');
+        bookingForm.addEventListener('submit', function(e) {
+            if (selectedSymptoms.size === 0) {
+                e.preventDefault();
+                alert('Please select at least one symptom.');
+                return false;
             }
         });
 
