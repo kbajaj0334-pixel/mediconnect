@@ -28,10 +28,14 @@ def send_appointment_reminders():
         for appt in appointments:
             try:
                 print("trty")
+
                 # Combine appointment date and start time
                 naive_start = datetime.combine(appt.appointment_date, appt.start_time)
+          
                 aware_start = timezone.make_aware(naive_start)
+        
                 time_until_start = aware_start - now
+              
                 print(f"DEBUG: appt={appt.id}, now={now}, aware_start={aware_start}, diff={time_until_start}")
                 
                 # Check if the appointment starts in the next 2.5 minutes to catch it in the 30-second interval
@@ -48,7 +52,6 @@ def send_appointment_reminders():
                                 meeting_details = f"Meeting Link: {meeting.meeting_link}\nRoom Name: {meeting.room_name}\n\n"
                             except Exception:
                                 import uuid
-                                from datetime import datetime
                                 from booking.models import OnlineMeeting
                                 naive_start = datetime.combine(appt.appointment_date, appt.start_time)
                                 naive_end = datetime.combine(appt.appointment_date, appt.end_time)

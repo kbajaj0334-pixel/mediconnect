@@ -209,6 +209,7 @@ def update_profile_view(request):
     user = request.user
     hospitals = Hospital.objects.all()
     profile = None
+  
     
     if user.role == 'PATIENT':
         try:
@@ -218,6 +219,8 @@ def update_profile_view(request):
             profile = PatientProfile.objects.create(user=user, date_of_birth='2000-01-01')
             
         if request.method == 'POST':
+            user.first_name = request.POST.get('first_name')
+            user.last_name = request.POST.get('last_name')
             profile.date_of_birth = request.POST.get('date_of_birth')
             profile.gender = request.POST.get('gender')
             profile.blood_group = request.POST.get('blood_group')
@@ -228,6 +231,7 @@ def update_profile_view(request):
                 profile.patient_pic = request.FILES['patient_pic']
             
             profile.save()
+            user.save()
             messages.success(request, 'Profile updated successfully!')
             return redirect('home')
             
@@ -245,18 +249,24 @@ def update_profile_view(request):
                     profile.hospital = Hospital.objects.get(id=hospital_id)
                 except Hospital.DoesNotExist:
                     pass
-            
+            print(request.POST.get('first_name'))
+            print(request.POST.get('last_name'))
+            print(user)
+            user.first_name = request.POST.get('first_name')
+            user.last_name = request.POST.get('last_name')
+           
             profile.specialization = request.POST.get('specialization')
             profile.experience_years = int(request.POST.get('experience_years', 0) or 0)
             profile.fees_online = int(request.POST.get('fees_online', 0) or 0)
             profile.fees_offline = int(request.POST.get('fees_offline', 0) or 0)
             profile.bio = request.POST.get('bio')
             profile.is_available = 'is_available' in request.POST
-            
+             
             if 'doctor_pic' in request.FILES:
                 profile.doctor_pic = request.FILES['doctor_pic']
             
             profile.save()
+            user.save()
             messages.success(request, 'Profile updated successfully!')
             return redirect('doctor_dashboard')
     
